@@ -1,16 +1,24 @@
-# Apache Kafka Training Course with Java
+# Apache Kafka Training Course with Spring Boot
 
 ![Kafka Training](https://img.shields.io/badge/Apache%20Kafka-Training-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7.18-brightgreen)
 ![Java](https://img.shields.io/badge/Java-11+-blue)
 ![Confluent](https://img.shields.io/badge/Confluent-Platform-green)
+![Docker](https://img.shields.io/badge/Docker-Supported-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## 🎯 Overview
 
-This comprehensive 8-day training course takes you from zero to proficient with Apache Kafka using Java. Designed for developers of all levels, it provides hands-on experience with real-world scenarios and follows industry best practices.
+This comprehensive 8-day training course takes you from zero to proficient with Apache Kafka using **Spring Boot and Java**. Designed for developers of all levels, it provides hands-on experience with real-world scenarios and follows industry best practices with modern Spring Boot integration.
 
 ### 🚀 **EventMart Progressive Project**
-Build a complete **e-commerce event streaming platform** throughout the 8 days! Each day adds new functionality, culminating in a professional demo showcasing all Kafka concepts. Perfect for portfolios and job interviews.
+Build a complete **e-commerce event streaming platform** throughout the 8 days using **Spring Boot**! Each day adds new functionality, culminating in a professional demo showcasing all Kafka concepts with Spring Boot best practices. Perfect for portfolios and job interviews.
+
+### 🌐 **Spring Boot Web Interface**
+- **Interactive Web UI** at `http://localhost:8080`
+- **REST API endpoints** for all training modules
+- **Real-time demonstrations** with Spring Boot integration
+- **Profile-based configurations** for different environments
 
 ### 🎯 **IMPORTANT: Choose Your Learning Path**
 This training offers **two approaches** - choose based on your goal:
@@ -42,183 +50,320 @@ This training offers **two approaches** - choose based on your goal:
 - Java 11 or higher
 - Maven 3.8+
 - Git
+- Docker (optional, for containerized setup)
 
-### Setup (Choose One Option)
+### Setup Options
 
-#### Option 1: Automated Setup (Recommended for Beginners)
+#### Option 1: Spring Boot Development Mode (Recommended)
 ```bash
 git clone <this repo>
 cd kafka-training-java
-chmod +x scripts/setup.sh
-./scripts/setup.sh
+
+# Start with development profile
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Access web interface
+open http://localhost:8080
 ```
 
-#### Option 2: Manual Setup (For Experienced Users)
+#### Option 2: Docker Compose Setup (Recommended for Production-like Environment)
 ```bash
-# 1. Install Confluent CLI
-curl -sL --http1.1 https://cnfl.io/cli | sh -s -- latest
+git clone <this repo>
+cd kafka-training-java
 
-# 2. Start Kafka locally
-confluent local kafka start
-
-# 3. Build the project
-mvn clean compile
-
-# 4. Verify setup
-mvn exec:java -Dexec.mainClass="com.training.kafka.Day01Foundation.BasicTopicOperations"
-```
-
-#### Option 3: Docker Setup (Alternative)
-```bash
-cd docker
+# Start complete environment with Kafka + Spring Boot
 docker-compose up -d
-# Access Kafka UI at http://localhost:8080
+
+# Access services
+# - Spring Boot App: http://localhost:8080
+# - Kafka UI: http://localhost:8081
+# - Prometheus: http://localhost:9090 (optional)
+# - Grafana: http://localhost:3000 (optional)
 ```
 
-## 📖 Learning Path
+#### Option 3: Testing with TestContainers
+```bash
+git clone <this repo>
+cd kafka-training-java
 
-| Day | Topic | Java Examples | Documentation |
-|-----|-------|---------------|---------------|
-| 1 | [Foundation](./docs/day01-foundation.md) | `BasicTopicOperations.java` | [Exercises](./exercises/day01-exercises.md) |
-| 2 | [Data Flow](./docs/day02-dataflow.md) | CLI + Concepts | [Exercises](./exercises/day02-exercises.md) |
-| 3 | [Producers](./docs/day03-producers.md) | `SimpleProducer.java`, `AdvancedProducer.java` | [Exercises](./exercises/day03-exercises.md) |
-| 4 | [Consumers](./docs/day04-consumers.md) | `SimpleConsumer.java` | [Exercises](./exercises/day04-exercises.md) |
-| 5 | [Streams](./docs/day05-streams.md) | `StreamProcessor.java` | [Exercises](./exercises/day05-exercises.md) |
-| 6 | [Schemas](./docs/day06-schemas.md) | `AvroProducer.java`, `AvroConsumer.java` | [Exercises](./exercises/day06-exercises.md) |
-| 7 | [Connect](./docs/day07-connect.md) | `ConnectorManager.java` | [Exercises](./exercises/day07-exercises.md) |
-| 8 | [Advanced](./docs/day08-advanced.md) | `SecurityConfig.java`, `MonitoringExample.java` | [Exercises](./exercises/day08-exercises.md) |
+# Run comprehensive Spring Boot tests
+mvn test -Dtest=SpringBootKafkaTrainingTest
 
-## 🛠 Project Structure
-
-### 🎭 **EventMart Project** (For Demo & Assessment)
-```
-src/main/java/com/training/kafka/eventmart/
-├── EventMartTopicManager.java    # Day 1: Topic architecture
-├── events/EventMartEvents.java   # Day 2: Event schemas
-├── producers/                    # Day 3: Producer services
-├── consumers/                    # Day 4: Consumer services
-├── streams/                      # Day 5: Stream processing
-├── schemas/                      # Day 6: Schema management
-├── connect/                      # Day 7: External integration
-├── production/                   # Day 8: Production features
-└── demo/EventMartDemoOrchestrator.java  # Final demo
+# All tests use TestContainers for real Kafka integration
 ```
 
-### 📚 **Concept Learning** (For Study Reference)
+#### Option 4: Different Spring Boot Profiles
+```bash
+# Development profile (enhanced logging, debug features)
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Test profile (optimized for testing)
+mvn spring-boot:run -Dspring-boot.run.profiles=test
+
+# Docker profile (container-optimized)
+mvn spring-boot:run -Dspring-boot.run.profiles=docker
+
+# Production profile (security & performance optimized)
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+## 📖 Learning Path with Spring Boot
+
+| Day | Topic | Spring Boot Services | Web Interface | Documentation |
+|-----|-------|---------------------|---------------|---------------|
+| 1 | [Foundation](./docs/day01-foundation.md) | `Day01FoundationService` | `/api/training/day01/*` | [Exercises](./exercises/day01-exercises.md) |
+| 2 | [Data Flow](./docs/day02-dataflow.md) | CLI + Web Concepts | Web UI + API | [Exercises](./exercises/day02-exercises.md) |
+| 3 | [Producers](./docs/day03-producers.md) | `Day03ProducerService` | `/api/training/day03/*` | [Exercises](./exercises/day03-exercises.md) |
+| 4 | [Consumers](./docs/day04-consumers.md) | `Day04ConsumerService` | `/api/training/day04/*` | [Exercises](./exercises/day04-exercises.md) |
+| 5 | [Streams](./docs/day05-streams.md) | `StreamProcessorService` | `/api/training/day05/*` | [Exercises](./exercises/day05-exercises.md) |
+| 6 | [Schemas](./docs/day06-schemas.md) | `AvroSchemaService` | `/api/training/day06/*` | [Exercises](./exercises/day06-exercises.md) |
+| 7 | [Connect](./docs/day07-connect.md) | `ConnectService` | `/api/training/day07/*` | [Exercises](./exercises/day07-exercises.md) |
+| 8 | [Advanced](./docs/day08-advanced.md) | `SecurityService`, `MonitoringService` | `/api/training/day08/*` | [Exercises](./exercises/day08-exercises.md) |
+
+### 🌐 Spring Boot Web Interface Features
+- **Interactive Demonstrations**: Run all examples through web UI
+- **Real-time Monitoring**: See Kafka operations in action
+- **API Documentation**: Built-in Swagger/OpenAPI support
+- **Profile Management**: Switch between environments easily
+- **EventMart Simulation**: Complete e-commerce demo platform
+
+## 🛠 Spring Boot Project Structure
+
+### 🎭 **EventMart Progressive Project** (For Demo & Assessment)
+```
+src/main/java/com/training/kafka/
+├── KafkaTrainingApplication.java     # Spring Boot main application
+├── controllers/
+│   ├── TrainingController.java       # REST API endpoints
+│   └── WebController.java            # Web interface controller
+├── services/                         # Spring Boot services
+│   ├── Day01FoundationService.java   # Day 1: Kafka fundamentals
+│   ├── Day03ProducerService.java     # Day 3: Producer patterns
+│   ├── Day04ConsumerService.java     # Day 4: Consumer groups
+│   └── EventMartService.java         # EventMart simulation
+├── config/                           # Spring Boot configuration
+│   ├── TrainingKafkaAutoConfiguration.java
+│   └── ProfileConfiguration.java     # Environment profiles
+├── eventmart/                        # Progressive project
+│   ├── events/                       # Event schemas (Avro)
+│   ├── simulation/                   # Demo data generation
+│   └── models/                       # Domain models
+└── avro/                            # Avro schema definitions
+```
+
+### 📚 **Spring Boot Resources**
 ```
 kafka-training-java/
-├── docs/                         # Day-by-day concept explanations
-│   ├── day01-foundation.md       # Kafka fundamentals
-│   ├── day02-dataflow.md         # Message patterns
-│   └── ... (days 3-8)
-├── exercises/                    # Practice exercises
-│   ├── day01-exercises.md        # Hands-on practice
-│   └── ... (days 2-8)
-├── src/main/java/com/training/kafka/
-│   ├── Day01Foundation/          # Concept examples
-│   ├── Day02DataFlow/            # Individual demos
-│   └── ... (days 3-8)
-└── src/main/resources/           # Configuration and schemas
+├── src/main/resources/
+│   ├── application.yml               # Default configuration
+│   ├── application-dev.yml           # Development profile
+│   ├── application-test.yml          # Testing profile
+│   ├── application-prod.yml          # Production profile
+│   ├── application-docker.yml        # Docker profile
+│   └── static/                       # Web interface assets
+├── docs/                             # Day-by-day documentation
+├── exercises/                        # Practice exercises
+├── docker-compose.yml                # Complete Docker setup
+├── Dockerfile                        # Spring Boot containerization
+└── src/test/java/                    # Comprehensive test suite
 ```
 
-## 🎮 Running Examples
+## 🎮 Running Spring Boot Examples
 
-### EventMart Progressive Project (Recommended)
+### 🌐 Web Interface (Recommended)
 ```bash
-# Day 1: Create EventMart topic architecture
-mvn exec:java -Dexec.mainClass="com.training.kafka.eventmart.EventMartTopicManager"
+# Start Spring Boot application
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-# Final Demo: Complete EventMart platform
-mvn exec:java -Dexec.mainClass="com.training.kafka.eventmart.demo.EventMartDemoOrchestrator"
+# Access web interface
+open http://localhost:8080
+
+# Available endpoints:
+# - GET  /                           # Main web interface
+# - GET  /api/training/modules       # List all training modules
+# - POST /api/training/day01/demo    # Run Day 1 demonstration
+# - POST /api/training/day03/demo    # Run Day 3 producer demo
+# - POST /api/training/day04/demo    # Run Day 4 consumer demo
+# - GET  /api/training/profile       # Current profile information
 ```
 
-### Individual Day Examples
+### 🎭 EventMart Progressive Project
 ```bash
-# Day 1: Basic topic operations
-mvn exec:java -Dexec.mainClass="com.training.kafka.Day01Foundation.BasicTopicOperations"
+# Create EventMart topics
+curl -X POST http://localhost:8080/api/training/eventmart/topics
 
-# Day 3: Producer examples
-mvn exec:java -Dexec.mainClass="com.training.kafka.Day03Producers.SimpleProducer"
+# Simulate user registration
+curl -X POST "http://localhost:8080/api/training/eventmart/simulate/user?userId=user123&email=user@example.com&name=John Doe"
 
-# Day 4: Consumer examples
-mvn exec:java -Dexec.mainClass="com.training.kafka.Day04Consumers.SimpleConsumer"
+# Simulate product creation
+curl -X POST "http://localhost:8080/api/training/eventmart/simulate/product?productId=prod123&name=Laptop&category=Electronics&price=999.99"
+
+# Simulate order placement
+curl -X POST "http://localhost:8080/api/training/eventmart/simulate/order?orderId=order123&userId=user123&amount=999.99"
+
+# Get EventMart status
+curl http://localhost:8080/api/training/eventmart/status
 ```
 
-## 🧪 Testing
-
+### 📡 REST API Examples
 ```bash
-# Run all tests
+# Get all training modules
+curl http://localhost:8080/api/training/modules
+
+# Run Day 1 foundation demonstration
+curl -X POST http://localhost:8080/api/training/day01/demo
+
+# Run Day 3 producer demonstration
+curl -X POST http://localhost:8080/api/training/day03/demo
+
+# Run Day 4 consumer demonstration
+curl -X POST http://localhost:8080/api/training/day04/demo
+```
+
+## 🧪 Spring Boot Testing
+
+### Comprehensive Test Suite
+```bash
+# Run all Spring Boot tests (includes TestContainers)
 mvn test
 
-# Run specific test
-mvn test -Dtest=BasicTopicOperationsTest
+# Run specific Spring Boot integration test
+mvn test -Dtest=SpringBootKafkaTrainingTest
 
-# Integration tests (requires Kafka running)
-mvn verify -Pintegration-tests
+# Run tests with specific profile
+mvn test -Dspring.profiles.active=test
+
+# Generate test coverage report
+mvn jacoco:report
 ```
 
-## 🔧 Development Environment
+### TestContainers Integration
+- **Real Kafka Testing**: All tests use TestContainers for authentic Kafka integration
+- **Automatic Setup**: No manual Kafka installation required for testing
+- **Isolated Tests**: Each test runs with fresh Kafka containers
+- **CI/CD Ready**: Tests work in any environment with Docker
+
+## 🔧 Spring Boot Development Environment
 
 ### Dependencies (Included)
-- Apache Kafka Clients 3.8.0
-- Confluent Platform 7.7.0
-- Avro 1.12.0
-- Jackson for JSON processing
-- SLF4J + Logback for logging
-- JUnit 5 + TestContainers for testing
+- **Spring Boot 2.7.18**: Core framework
+- **Spring Kafka**: Kafka integration
+- **Apache Kafka Clients 3.8.0**: Latest Kafka client
+- **Confluent Platform 7.7.0**: Schema registry support
+- **Avro 1.12.0**: Schema evolution
+- **TestContainers**: Integration testing
+- **Spring Boot Actuator**: Monitoring endpoints
+- **Spring Boot DevTools**: Development productivity
 
 ### IDE Setup
 1. Import as Maven project
 2. Set Java 11+ as project SDK
 3. Run `mvn compile` to generate Avro classes
 4. Enable annotation processing
+5. Configure Spring Boot run configurations with profiles
 
-## 🔍 Monitoring & Troubleshooting
+### Spring Boot Profiles
+- **dev**: Development with enhanced logging and debug features
+- **test**: Optimized for testing with TestContainers
+- **staging**: Production-like environment for testing
+- **prod**: Production-ready with security and performance optimizations
+- **docker**: Container-optimized settings
 
-### Web UIs (Docker setup)
-- **Kafka UI**: http://localhost:8080
-- **Control Center**: http://localhost:9021
+## 🔍 Spring Boot Monitoring & Troubleshooting
 
-### CLI Commands
+### Web Interfaces
+- **Spring Boot App**: http://localhost:8080 (Main application)
+- **Kafka UI**: http://localhost:8081 (Docker Compose setup)
+- **Spring Boot Actuator**: http://localhost:8080/actuator
+- **Health Check**: http://localhost:8080/actuator/health
+- **Metrics**: http://localhost:8080/actuator/metrics
+- **Prometheus**: http://localhost:9090 (Docker Compose with monitoring profile)
+- **Grafana**: http://localhost:3000 (Docker Compose with monitoring profile)
+
+### Spring Boot Actuator Endpoints
 ```bash
-# List topics
-confluent local kafka topic list
+# Application health
+curl http://localhost:8080/actuator/health
 
-# Check consumer groups
-confluent local kafka consumer group list
+# Application info
+curl http://localhost:8080/actuator/info
 
-# View service status
-confluent local services list
+# Kafka metrics
+curl http://localhost:8080/actuator/metrics
+
+# Environment properties
+curl http://localhost:8080/actuator/env
+
+# Configuration properties
+curl http://localhost:8080/actuator/configprops
 ```
 
-### Common Issues
-1. **Port conflicts**: Check `lsof -i :9092`
-2. **Java version**: Verify with `java --version`
-3. **Kafka not starting**: Check logs with `confluent local services kafka log`
+### Docker Compose Monitoring
+```bash
+# Start with monitoring stack
+docker-compose --profile monitoring up -d
 
-## 🎯 Learning Objectives
+# View logs
+docker-compose logs -f kafka-training-app
+
+# Check service status
+docker-compose ps
+```
+
+### Common Issues & Solutions
+1. **Port conflicts**:
+   - Spring Boot: Check `lsof -i :8080`
+   - Kafka: Check `lsof -i :9092`
+2. **Profile issues**: Verify with `/api/training/profile` endpoint
+3. **Kafka connection**: Check logs for connection warnings
+4. **Docker issues**: Run `docker-compose down && docker-compose up -d`
+## 🎯 Spring Boot Learning Objectives
 
 By completing this course, you will:
 
+✅ **Master Spring Boot + Kafka Integration** - Modern enterprise patterns
 ✅ **Understand Kafka Architecture** - Core concepts, brokers, topics, partitions
-✅ **Master Java Kafka Clients** - Producers, consumers, admin operations
-✅ **Implement Stream Processing** - Real-time data processing patterns
-✅ **Handle Schema Evolution** - Avro schemas and Schema Registry
-✅ **Configure Security** - Authentication, authorization, encryption
-✅ **Monitor and Optimize** - Performance tuning and operational best practices
+✅ **Build Production-Ready Services** - Spring Boot services with Kafka
+✅ **Implement Stream Processing** - Real-time data processing with Spring Kafka
+✅ **Handle Schema Evolution** - Avro schemas with Spring Boot auto-configuration
+✅ **Configure Multiple Environments** - Dev, test, staging, production profiles
+✅ **Containerize Applications** - Docker and Docker Compose deployment
+✅ **Test with TestContainers** - Real integration testing without manual setup
+✅ **Monitor and Optimize** - Spring Boot Actuator and performance tuning
+✅ **Build EventMart Demo** - Complete e-commerce platform for portfolio
+
+## 🏆 What You'll Build
+
+### EventMart E-commerce Platform
+A complete event-driven e-commerce platform built with Spring Boot:
+- **User Management**: Registration, authentication, profile updates
+- **Product Catalog**: Product creation, updates, inventory management
+- **Order Processing**: Order placement, payment processing, fulfillment
+- **Real-time Analytics**: Sales metrics, user behavior, inventory tracking
+- **Event Sourcing**: Complete audit trail of all business events
+- **Microservices Ready**: Designed for distributed architecture
 
 ## 📚 Additional Resources
 
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- [Spring for Apache Kafka](https://spring.io/projects/spring-kafka)
 - [Apache Kafka Documentation](https://kafka.apache.org/documentation/)
 - [Confluent Platform Documentation](https://docs.confluent.io/)
-- [Confluent Developer Portal](https://developer.confluent.io/)
+- [TestContainers Documentation](https://www.testcontainers.org/)
 
 ## 👨‍💻 Author
 
-**Ronald DC**
-- GitHub: [@rcdelacruz](https://github.com/rcdelacruz)
-- Email: rcdelacruz@gmail.com
+**Kafka Training Course**
+- Comprehensive Spring Boot + Kafka training
+- Industry best practices and real-world patterns
+- Complete with EventMart progressive project
 
 ---
 
-🚀 **Ready to start your Kafka journey?** Begin with [Day 1: Foundation](./docs/day01-foundation.md)!
+🚀 **Ready to start your Spring Boot + Kafka journey?**
+
+1. **Quick Start**: `mvn spring-boot:run -Dspring-boot.run.profiles=dev`
+2. **Open Web Interface**: http://localhost:8080
+3. **Begin Training**: [Day 1: Foundation](./docs/day01-foundation.md)
+
+**Perfect for**: Developers, DevOps engineers, architects building event-driven systems
