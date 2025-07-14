@@ -1,0 +1,157 @@
+# Spring Boot Staging Profile Configuration
+# This profile is optimized for staging environment testing with production-like settings
+
+spring:
+  # Application Configuration
+  application:
+    name: kafka-training-staging
+
+  # Kafka Configuration for Staging
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka-staging:9092}
+    security:
+      protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:kafka-training-staging-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      auto-commit-interval: 1000
+      session-timeout: 30000
+      heartbeat-interval: 3000
+      max-poll-records: 500
+      fetch-min-size: 10000
+      fetch-max-wait: 500
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 10
+      batch-size: 32768
+      linger-ms: 10
+      buffer-memory: 33554432
+      compression-type: lz4
+      max-in-flight-requests-per-connection: 5
+      enable-idempotence: true
+    admin:
+      fail-fast: true
+      properties:
+        request.timeout.ms: 30000
+        connections.max.idle.ms: 300000
+
+# Server Configuration for Staging
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:/}
+  compression:
+    enabled: true
+  error:
+    include-stacktrace: on-param
+    include-message: always
+
+# Training-specific Configuration for Staging
+training:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka-staging:9092}
+    client-id: ${KAFKA_CLIENT_ID:kafka-training-staging}
+    admin:
+      request-timeout: 30000
+      connection-timeout: 15000
+    producer:
+      acks: all
+      retries: 10
+      batch-size: 32768
+      linger-ms: 10
+      compression-type: lz4
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:kafka-training-staging-consumers}
+      auto-offset-reset: earliest
+      session-timeout: 30000
+      heartbeat-interval: 3000
+
+  # Staging-specific features
+  features:
+    debug-mode: true
+    detailed-logging: true
+    auto-topic-creation: true
+    demo-data-generation: true
+    web-interface-enabled: true
+    api-documentation: true
+
+  # EventMart Configuration for Staging
+  eventmart:
+    demo:
+      auto-start: false
+      duration-minutes: ${EVENTMART_DEMO_DURATION:15}
+      events-per-second: ${EVENTMART_EVENTS_PER_SECOND:25}
+      users-count: ${EVENTMART_USERS_COUNT:500}
+      products-count: ${EVENTMART_PRODUCTS_COUNT:250}
+      orders-per-minute: ${EVENTMART_ORDERS_PER_MINUTE:50}
+
+# Logging Configuration for Staging
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.training.kafka: ${LOG_LEVEL_APP:DEBUG}
+    org.apache.kafka: ${LOG_LEVEL_KAFKA:INFO}
+    org.springframework.kafka: ${LOG_LEVEL_SPRING_KAFKA:INFO}
+    org.springframework.web: ${LOG_LEVEL_WEB:INFO}
+    org.springframework.boot: ${LOG_LEVEL_BOOT:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE_PATH:/var/log/kafka-training/staging.log}
+    max-size: ${LOG_FILE_MAX_SIZE:50MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:10}
+
+# Management and Monitoring for Staging
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,configprops,beans,mappings,kafka,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    kafka:
+      enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: kafka-training
+      environment: staging
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+
+# Staging Database Configuration (if needed)
+# spring:
+#   datasource:
+#     url: ${DATABASE_URL:jdbc:postgresql://postgres-staging:5432/kafka_training_staging}
+#     username: ${DATABASE_USERNAME:kafka_training}
+#     password: ${DATABASE_PASSWORD}
+#     driver-class-name: org.postgresql.Driver
+#     hikari:
+#       maximum-pool-size: ${DATABASE_POOL_SIZE:10}
+#       minimum-idle: ${DATABASE_POOL_MIN_IDLE:2}
+#   jpa:
+#     show-sql: true
+#     hibernate:
+#       ddl-auto: update
+#     database-platform: org.hibernate.dialect.PostgreSQLDialect

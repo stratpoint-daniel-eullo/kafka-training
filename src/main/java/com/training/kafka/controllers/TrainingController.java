@@ -4,6 +4,7 @@ import com.training.kafka.services.Day01FoundationService;
 import com.training.kafka.services.Day03ProducerService;
 import com.training.kafka.services.Day04ConsumerService;
 import com.training.kafka.services.EventMartService;
+import com.training.kafka.config.ProfileConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -33,16 +34,19 @@ public class TrainingController {
     private final Day03ProducerService day03Service;
     private final Day04ConsumerService day04Service;
     private final EventMartService eventMartService;
+    private final ProfileConfiguration profileConfiguration;
 
     public TrainingController(
             Day01FoundationService day01Service,
             Day03ProducerService day03Service,
             Day04ConsumerService day04Service,
-            EventMartService eventMartService) {
+            EventMartService eventMartService,
+            ProfileConfiguration profileConfiguration) {
         this.day01Service = day01Service;
         this.day03Service = day03Service;
         this.day04Service = day04Service;
         this.eventMartService = eventMartService;
+        this.profileConfiguration = profileConfiguration;
         logger.info("🌐 TrainingController initialized - Web API ready");
     }
 
@@ -455,5 +459,39 @@ public class TrainingController {
         response.put("amount", String.format("$%.2f", amount));
 
         return ResponseEntity.ok(response);
+    }
+
+    // ===== Profile Information Endpoint =====
+
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> getProfileInfo() {
+        logger.info("📋 Getting profile information via Web API");
+
+        try {
+            ProfileConfiguration.ProfileInfo profileInfo = profileConfiguration.getProfileInfo();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("applicationName", profileInfo.applicationName);
+            response.put("activeProfiles", profileInfo.activeProfiles);
+            response.put("defaultProfiles", profileInfo.defaultProfiles);
+            response.put("features", Map.of(
+                "debugMode", profileInfo.debugMode,
+                "autoTopicCreation", profileInfo.autoTopicCreation,
+                "webInterfaceEnabled", profileInfo.webInterfaceEnabled
+            ));
+            response.put("timestamp", java.time.Instant.now().toString());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("❌ Failed to get profile information: {}", e.getMessage(), e);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "Failed to get profile information: " + e.getMessage());
+
+            return ResponseEntity.status(500).body(response);
+        }
     }
 }

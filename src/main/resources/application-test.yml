@@ -1,0 +1,134 @@
+# Spring Boot Test Profile Configuration
+# This profile is optimized for automated testing with TestContainers and CI/CD
+
+spring:
+  # Application Configuration
+  application:
+    name: kafka-training-test
+
+  # Kafka Configuration for Testing (will be overridden by TestContainers)
+  kafka:
+    bootstrap-servers: localhost:19092  # Default, overridden by @DynamicPropertySource
+    consumer:
+      group-id: kafka-training-test-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: true
+      auto-commit-interval: 100
+      session-timeout: 10000
+      heartbeat-interval: 1000
+      max-poll-records: 100
+      fetch-min-size: 1
+      fetch-max-wait: 100
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 0
+      batch-size: 1024
+      linger-ms: 0
+      buffer-memory: 1048576
+      compression-type: none
+      max-in-flight-requests-per-connection: 1
+      enable-idempotence: true
+    admin:
+      fail-fast: true
+      properties:
+        request.timeout.ms: 10000
+        connections.max.idle.ms: 60000
+
+# Server Configuration for Testing
+server:
+  port: 0  # Random port for testing
+  servlet:
+    context-path: /
+  error:
+    include-stacktrace: never
+    include-message: always
+
+# Training-specific Configuration for Testing
+training:
+  kafka:
+    bootstrap-servers: localhost:19092  # Will be overridden by TestContainers
+    client-id: kafka-training-test
+    admin:
+      request-timeout: 10000
+      connection-timeout: 5000
+    producer:
+      acks: all
+      retries: 0
+      batch-size: 1024
+      linger-ms: 0
+      compression-type: none
+    consumer:
+      group-id: kafka-training-test-consumers
+      auto-offset-reset: earliest
+      session-timeout: 10000
+      heartbeat-interval: 1000
+
+  # Test-specific features
+  features:
+    debug-mode: false
+    detailed-logging: false
+    auto-topic-creation: true
+    demo-data-generation: false
+    web-interface-enabled: true
+    api-documentation: false
+
+  # EventMart Configuration for Testing
+  eventmart:
+    demo:
+      auto-start: false
+      duration-minutes: 1
+      events-per-second: 10
+      users-count: 10
+      products-count: 5
+      orders-per-minute: 5
+
+# Logging Configuration for Testing
+logging:
+  level:
+    root: WARN
+    com.training.kafka: INFO
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
+    org.springframework.web: WARN
+    org.springframework.boot: WARN
+    org.testcontainers: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Management and Monitoring for Testing
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: false
+
+# Test Database Configuration
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: false
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+
+# TestContainers Configuration
+testcontainers:
+  reuse:
+    enable: true  # Reuse containers between test runs for faster execution

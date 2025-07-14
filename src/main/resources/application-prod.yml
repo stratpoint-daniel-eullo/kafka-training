@@ -1,0 +1,203 @@
+# Spring Boot Production Profile Configuration
+# This profile is optimized for production deployment with security and performance
+
+spring:
+  # Application Configuration
+  application:
+    name: kafka-training-prod
+
+  # Kafka Configuration for Production
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka-cluster:9092}
+    security:
+      protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+    ssl:
+      trust-store-location: ${KAFKA_SSL_TRUSTSTORE_LOCATION:}
+      trust-store-password: ${KAFKA_SSL_TRUSTSTORE_PASSWORD:}
+      key-store-location: ${KAFKA_SSL_KEYSTORE_LOCATION:}
+      key-store-password: ${KAFKA_SSL_KEYSTORE_PASSWORD:}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:kafka-training-prod-group}
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      auto-commit-interval: 5000
+      session-timeout: 30000
+      heartbeat-interval: 3000
+      max-poll-records: 500
+      fetch-min-size: 50000
+      fetch-max-wait: 500
+      max-poll-interval: 300000
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 2147483647
+      batch-size: 65536
+      linger-ms: 20
+      buffer-memory: 67108864
+      compression-type: lz4
+      max-in-flight-requests-per-connection: 5
+      enable-idempotence: true
+      delivery-timeout-ms: 120000
+      request-timeout-ms: 30000
+    admin:
+      fail-fast: true
+      properties:
+        request.timeout.ms: 60000
+        connections.max.idle.ms: 540000
+
+# Server Configuration for Production
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:/}
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  http2:
+    enabled: true
+  error:
+    include-stacktrace: never
+    include-message: never
+    whitelabel:
+      enabled: false
+
+# Training-specific Configuration for Production
+training:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka-cluster:9092}
+    client-id: ${KAFKA_CLIENT_ID:kafka-training-prod}
+    admin:
+      request-timeout: 60000
+      connection-timeout: 30000
+    producer:
+      acks: all
+      retries: 2147483647
+      batch-size: 65536
+      linger-ms: 20
+      compression-type: lz4
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:kafka-training-prod-consumers}
+      auto-offset-reset: latest
+      session-timeout: 30000
+      heartbeat-interval: 3000
+
+  # Production-specific features
+  features:
+    debug-mode: false
+    detailed-logging: false
+    auto-topic-creation: false
+    demo-data-generation: false
+    web-interface-enabled: ${TRAINING_WEB_ENABLED:true}
+    api-documentation: false
+
+  # EventMart Configuration for Production
+  eventmart:
+    demo:
+      auto-start: false
+      duration-minutes: ${EVENTMART_DEMO_DURATION:30}
+      events-per-second: ${EVENTMART_EVENTS_PER_SECOND:50}
+      users-count: ${EVENTMART_USERS_COUNT:1000}
+      products-count: ${EVENTMART_PRODUCTS_COUNT:500}
+      orders-per-minute: ${EVENTMART_ORDERS_PER_MINUTE:100}
+
+# Security Configuration
+security:
+  require-ssl: ${SECURITY_REQUIRE_SSL:false}
+  headers:
+    frame-options: DENY
+    content-type-options: nosniff
+    xss-protection: 1; mode=block
+    referrer-policy: strict-origin-when-cross-origin
+
+# Logging Configuration for Production
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.training.kafka: ${LOG_LEVEL_APP:INFO}
+    org.apache.kafka: ${LOG_LEVEL_KAFKA:WARN}
+    org.springframework.kafka: ${LOG_LEVEL_SPRING_KAFKA:WARN}
+    org.springframework.web: ${LOG_LEVEL_WEB:WARN}
+    org.springframework.boot: ${LOG_LEVEL_BOOT:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE_PATH:/var/log/kafka-training/application.log}
+    max-size: ${LOG_FILE_MAX_SIZE:100MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:30}
+    total-size-cap: ${LOG_FILE_TOTAL_SIZE:1GB}
+
+# Management and Monitoring for Production
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: kafka-training
+      environment: production
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: false
+
+# Production Database Configuration (if needed)
+# spring:
+#   datasource:
+#     url: ${DATABASE_URL:jdbc:postgresql://postgres:5432/kafka_training}
+#     username: ${DATABASE_USERNAME:kafka_training}
+#     password: ${DATABASE_PASSWORD}
+#     driver-class-name: org.postgresql.Driver
+#     hikari:
+#       maximum-pool-size: ${DATABASE_POOL_SIZE:20}
+#       minimum-idle: ${DATABASE_POOL_MIN_IDLE:5}
+#       connection-timeout: 30000
+#       idle-timeout: 600000
+#       max-lifetime: 1800000
+#   jpa:
+#     show-sql: false
+#     hibernate:
+#       ddl-auto: validate
+#     database-platform: org.hibernate.dialect.PostgreSQLDialect
+#     properties:
+#       hibernate:
+#         jdbc:
+#           batch_size: 20
+#         order_inserts: true
+#         order_updates: true
+
+# Cache Configuration (if needed)
+# spring:
+#   cache:
+#     type: redis
+#   redis:
+#     host: ${REDIS_HOST:redis}
+#     port: ${REDIS_PORT:6379}
+#     password: ${REDIS_PASSWORD:}
+#     timeout: 2000ms
+#     lettuce:
+#       pool:
+#         max-active: 8
+#         max-idle: 8
+#         min-idle: 0
