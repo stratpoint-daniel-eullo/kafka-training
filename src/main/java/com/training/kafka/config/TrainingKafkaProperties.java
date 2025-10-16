@@ -42,19 +42,27 @@ public class TrainingKafkaProperties {
     public static class Kafka {
         private String bootstrapServers = "localhost:9092";
         private String clientId = "kafka-training-client";
+        private String schemaRegistryUrl = "http://localhost:8082";
+        private String connectUrl = "http://localhost:8083";
 
         public String getBootstrapServers() { return bootstrapServers; }
         public void setBootstrapServers(String bootstrapServers) { this.bootstrapServers = bootstrapServers; }
 
         public String getClientId() { return clientId; }
         public void setClientId(String clientId) { this.clientId = clientId; }
+
+        public String getSchemaRegistryUrl() { return schemaRegistryUrl; }
+        public void setSchemaRegistryUrl(String schemaRegistryUrl) { this.schemaRegistryUrl = schemaRegistryUrl; }
+
+        public String getConnectUrl() { return connectUrl; }
+        public void setConnectUrl(String connectUrl) { this.connectUrl = connectUrl; }
     }
 
     /**
      * Schema Registry properties
      */
     public static class SchemaRegistry {
-        private String url = "http://localhost:8081";
+        private String url = "http://localhost:8082";
 
         public String getUrl() { return url; }
         public void setUrl(String url) { this.url = url; }

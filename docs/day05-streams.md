@@ -7,7 +7,165 @@ By the end of Day 5, you will:
 - Build stateful stream processing applications
 - Create stream-stream and stream-table joins
 - Handle windowing and aggregations
-- Deploy fault-tolerant streaming applications
+- Deploy fault-tolerant streaming applications with Spring Boot
+
+## 🚀 Quick Start with Spring Boot
+
+### Running the Day 5 Demo
+
+```bash
+# Start the Spring Boot application
+mvn spring-boot:run
+
+# Access web interface
+open http://localhost:8080
+
+# Or run the demo via REST API
+curl -X POST http://localhost:8080/api/training/day05/demo
+```
+
+### Available Stream Applications
+
+The Day 5 implementation provides **4 real-world stream processing applications**:
+
+#### 1. User Activity Stream
+- **Purpose**: Aggregates user events in 1-hour windows
+- **Use Case**: Track user engagement patterns
+- **Technology**: Windowed aggregations, stateful processing
+- **Start**: `POST /api/training/day05/streams/user-activity/start`
+- **Stop**: `POST /api/training/day05/streams/user-activity/stop`
+
+#### 2. Order Analytics Stream
+- **Purpose**: Real-time order metrics in 15-minute windows
+- **Use Case**: Business KPIs (order count, revenue, average order value)
+- **Technology**: Custom aggregations, windowed metrics
+- **Start**: `POST /api/training/day05/streams/order-analytics/start`
+- **Stop**: `POST /api/training/day05/streams/order-analytics/stop`
+
+#### 3. Fraud Detection Stream
+- **Purpose**: Joins user events with orders to detect suspicious patterns
+- **Use Case**: Security and fraud prevention
+- **Technology**: Stream-stream joins, pattern detection
+- **Start**: `POST /api/training/day05/streams/fraud-detection/start`
+- **Stop**: `POST /api/training/day05/streams/fraud-detection/stop`
+
+#### 4. EventMart Real-time Analytics
+- **Purpose**: Comprehensive business analytics for EventMart
+- **Use Case**: Real-time revenue tracking, user registrations, payment success rate
+- **Technology**: Multiple windowing strategies, complex analytics
+- **Start**: `POST /api/training/day05/streams/eventmart/start`
+- **Stop**: `POST /api/training/day05/streams/eventmart/stop`
+
+### REST API Endpoints
+
+```bash
+# Get status of all streams
+curl http://localhost:8080/api/training/day05/streams/status
+
+# Start a specific stream
+curl -X POST http://localhost:8080/api/training/day05/streams/user-activity/start
+
+# Stop a specific stream
+curl -X POST http://localhost:8080/api/training/day05/streams/user-activity/stop
+```
+
+### Spring Boot Configuration
+
+The Kafka Streams configuration is in `application.properties`:
+
+```properties
+# Kafka Streams Configuration
+spring.kafka.streams.application-id=kafka-training-streams
+spring.kafka.streams.replication-factor=1
+spring.kafka.streams.properties.num.stream.threads=2
+spring.kafka.streams.properties.processing.guarantee=exactly_once_v2
+spring.kafka.streams.properties.commit.interval.ms=10000
+spring.kafka.streams.properties.state.dir=/tmp/kafka-streams
+```
+
+### Day05StreamsService Example
+
+```java
+@Service
+public class Day05StreamsService {
+
+    @Autowired
+    private TrainingKafkaProperties kafkaProperties;
+
+    // User Activity Stream - 1-hour windows
+    public boolean startUserActivityStream() {
+        Properties props = createStreamProperties("user-activity-stream");
+        StreamsBuilder builder = new StreamsBuilder();
+
+        KStream<String, String> userEvents = builder.stream("user-events");
+
+        userEvents
+            .filter((key, value) -> isValidJson(value))
+            .selectKey((key, value) -> extractUserId(value))
+            .groupByKey()
+            .windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofHours(1)))
+            .count(Materialized.as("user-activity-counts"))
+            .toStream()
+            .to("user-activity-summary");
+
+        userActivityStream = new KafkaStreams(builder.build(), props);
+        userActivityStream.start();
+        return true;
+    }
+
+    // Order Analytics - 15-minute windows
+    public boolean startOrderAnalyticsStream() {
+        // Real-time order metrics: count, total revenue, average order value
+        // See Day05StreamsService.java for full implementation
+    }
+
+    // Fraud Detection - Stream joins
+    public boolean startFraudDetectionStream() {
+        // Joins user events with orders within 5-minute windows
+        // Detects suspicious patterns (orders > $1000)
+        // See Day05StreamsService.java for full implementation
+    }
+}
+```
+
+### Testing with TestContainers
+
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
+class Day05StreamsTest {
+
+    @Container
+    static final KafkaContainer kafka = new KafkaContainer(
+        DockerImageName.parse("confluentinc/cp-kafka:7.7.0"))
+            .withEmbeddedZookeeper();
+
+    @Autowired
+    private Day05StreamsService streamsService;
+
+    @Test
+    void shouldStartAndStopUserActivityStream() {
+        // Start stream
+        boolean started = streamsService.startUserActivityStream();
+        assertTrue(started);
+
+        // Wait for stream to be running
+        await().atMost(Duration.ofSeconds(10)).until(() -> {
+            Map<String, Object> status = streamsService.getStreamsStatus();
+            Map<?, ?> streamStatus = (Map<?, ?>) status.get("userActivityStream");
+            return (Boolean) streamStatus.get("running");
+        });
+
+        // Stop stream
+        boolean stopped = streamsService.stopUserActivityStream();
+        assertTrue(stopped);
+    }
+}
+```
+
+See `Day05StreamsTest.java` for comprehensive test examples.
+
+---
 
 ## Morning Session (3 hours): Kafka Streams Fundamentals
 

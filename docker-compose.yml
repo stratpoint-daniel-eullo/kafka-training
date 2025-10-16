@@ -56,18 +56,125 @@ services:
       timeout: 10s
       retries: 3
 
+  # Schema Registry service (Day 6: Schema Management)
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.7.0
+    hostname: schema-registry
+    container_name: kafka-training-schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8082:8082"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8082
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
+      SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: BACKWARD
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
+    volumes:
+      - schema-registry-data:/var/lib/schema-registry
+    networks:
+      - kafka-training-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/subjects || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL database (Day 7: Kafka Connect)
+  postgres:
+    image: postgres:15-alpine
+    hostname: postgres
+    container_name: kafka-training-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: eventmart
+      POSTGRES_USER: eventmart
+      POSTGRES_PASSWORD: eventmart123
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - kafka-training-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventmart -d eventmart"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka Connect service (Day 7: Data Integration)
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.7.0
+    hostname: kafka-connect
+    container_name: kafka-training-connect
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: 'kafka:29092'
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: kafka-connect-cluster
+      CONNECT_CONFIG_STORAGE_TOPIC: _connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_TOPIC: _connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: _connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8082
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: org.apache.kafka.connect=INFO
+    volumes:
+      - kafka-connect-data:/tmp/kafka-connect
+    networks:
+      - kafka-training-network
+    command:
+      - bash
+      - -c
+      - |
+        # Install JDBC connector
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.7.4
+        # Start Connect
+        /etc/confluent/docker/run
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
   # Kafka UI for management and monitoring
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-training-ui
     depends_on:
       - kafka
+      - schema-registry
+      - kafka-connect
     ports:
       - "8081:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: kafka-training-cluster
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8082
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: kafka-connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
       DYNAMIC_CONFIG_ENABLED: 'true'
     networks:
       - kafka-training-network
@@ -81,12 +188,23 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+      kafka-connect:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       TRAINING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      TRAINING_KAFKA_SCHEMA_REGISTRY_URL: http://schema-registry:8082
+      TRAINING_KAFKA_CONNECT_URL: http://kafka-connect:8083
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/eventmart
+      SPRING_DATASOURCE_USERNAME: eventmart
+      SPRING_DATASOURCE_PASSWORD: eventmart123
       TRAINING_FEATURES_DEBUG_MODE: 'true'
       TRAINING_FEATURES_WEB_INTERFACE_ENABLED: 'true'
       TRAINING_EVENTMART_DEMO_AUTO_START: 'false'
@@ -147,6 +265,12 @@ volumes:
   zookeeper-logs:
     driver: local
   kafka-data:
+    driver: local
+  schema-registry-data:
+    driver: local
+  postgres-data:
+    driver: local
+  kafka-connect-data:
     driver: local
   app-logs:
     driver: local

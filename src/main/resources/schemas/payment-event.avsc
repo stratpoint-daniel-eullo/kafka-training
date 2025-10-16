@@ -1,0 +1,124 @@
+{
+  "type": "record",
+  "name": "PaymentEvent",
+  "namespace": "com.training.kafka.avro",
+  "doc": "Schema for payment events with schema evolution support",
+  "fields": [
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Unique identifier for the payment"
+    },
+    {
+      "name": "eventType",
+      "type": {
+        "type": "enum",
+        "name": "PaymentEventType",
+        "symbols": ["INITIATED", "AUTHORIZED", "CAPTURED", "DECLINED", "REFUNDED", "FAILED", "CHARGEBACK"]
+      },
+      "doc": "The type of payment event"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": "Timestamp when the event occurred (epoch millis)"
+    },
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "Associated order identifier"
+    },
+    {
+      "name": "userId",
+      "type": "string",
+      "doc": "User who made the payment"
+    },
+    {
+      "name": "amount",
+      "type": "double",
+      "doc": "Payment amount in USD"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "default": "USD",
+      "doc": "Payment currency code (ISO 4217)"
+    },
+    {
+      "name": "paymentMethod",
+      "type": {
+        "type": "enum",
+        "name": "PaymentMethod",
+        "symbols": ["CREDIT_CARD", "DEBIT_CARD", "PAYPAL", "STRIPE", "APPLE_PAY", "GOOGLE_PAY", "BANK_TRANSFER", "CASH"]
+      },
+      "doc": "Payment method used"
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "doc": "Current payment status"
+    },
+    {
+      "name": "processorTransactionId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Transaction ID from payment processor (optional)"
+    },
+    {
+      "name": "cardInfo",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CardInfo",
+          "fields": [
+            {"name": "cardType", "type": "string"},
+            {"name": "lastFourDigits", "type": "string"},
+            {"name": "expiryMonth", "type": "int"},
+            {"name": "expiryYear", "type": "int"}
+          ]
+        }
+      ],
+      "default": null,
+      "doc": "Card information (optional, only for card payments)"
+    },
+    {
+      "name": "errorDetails",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "ErrorDetails",
+          "fields": [
+            {"name": "errorCode", "type": "string"},
+            {"name": "errorMessage", "type": "string"},
+            {"name": "errorCategory", "type": "string"}
+          ]
+        }
+      ],
+      "default": null,
+      "doc": "Error details (optional, present when payment fails)"
+    },
+    {
+      "name": "riskScore",
+      "type": ["null", "double"],
+      "default": null,
+      "doc": "Fraud risk score (0.0 - 1.0, higher is riskier)"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional payment metadata"
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1,
+      "doc": "Schema version for evolution tracking"
+    }
+  ]
+}

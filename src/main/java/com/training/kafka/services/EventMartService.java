@@ -3,7 +3,6 @@ package com.training.kafka.services;
 import com.training.kafka.eventmart.EventMartTopicManager;
 import com.training.kafka.eventmart.demo.EventMartDemoOrchestrator;
 import com.training.kafka.config.TrainingKafkaProperties;
-import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +14,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Spring Service for EventMart Progressive Project
@@ -30,7 +30,6 @@ public class EventMartService {
 
     private static final Logger logger = LoggerFactory.getLogger(EventMartService.class);
 
-    private final AdminClient adminClient;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final KafkaProducer<String, String> rawProducer;
     private final TrainingKafkaProperties kafkaProperties;
@@ -44,11 +43,9 @@ public class EventMartService {
      * Constructor with dependency injection
      */
     public EventMartService(
-            @Qualifier("trainingAdminClient") AdminClient adminClient,
             @Qualifier("trainingKafkaTemplate") KafkaTemplate<String, String> kafkaTemplate,
             @Qualifier("trainingRawProducer") KafkaProducer<String, String> rawProducer,
             TrainingKafkaProperties kafkaProperties) {
-        this.adminClient = adminClient;
         this.kafkaTemplate = kafkaTemplate;
         this.rawProducer = rawProducer;
         this.kafkaProperties = kafkaProperties;
@@ -270,6 +267,23 @@ public class EventMartService {
 
         if (scheduler != null && !scheduler.isShutdown()) {
             scheduler.shutdown();
+            try {
+                // Wait for existing tasks to terminate
+                if (!scheduler.awaitTermination(10, TimeUnit.SECONDS)) {
+                    logger.warn("⚠️  Scheduler did not terminate in time, forcing shutdown");
+                    scheduler.shutdownNow();
+
+                    // Wait again for tasks to respond to cancellation
+                    if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                        logger.error("❌ Scheduler did not terminate after forced shutdown");
+                    }
+                }
+                logger.info("✅ Scheduler shut down successfully");
+            } catch (InterruptedException e) {
+                logger.warn("⚠️  Cleanup interrupted, forcing scheduler shutdown");
+                scheduler.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
 
         logger.info("✅ EventMart service cleanup completed");

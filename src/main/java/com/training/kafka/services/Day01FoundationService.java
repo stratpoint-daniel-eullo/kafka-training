@@ -122,7 +122,7 @@ public class Day01FoundationService {
     public TopicDescription describeTopic(String topicName) {
         try {
             DescribeTopicsResult result = adminClient.describeTopics(Collections.singletonList(topicName));
-            TopicDescription description = result.values().get(topicName).get();
+            TopicDescription description = result.topicNameValues().get(topicName).get();
 
             logger.info("📊 Topic '{}' details:", topicName);
             logger.info("  - Partitions: {}", description.partitions().size());

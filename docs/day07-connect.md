@@ -9,6 +9,354 @@ By the end of Day 7, you will:
 - Monitor connector performance and health
 - Troubleshoot common connector issues
 
+## 🚀 Quick Start with Spring Boot
+
+This section shows you how to use the Spring Boot implementation of Day 7 concepts. The exercises can run using our web-based training interface or command-line tools.
+
+### Prerequisites
+```bash
+# Start Docker Compose (includes Kafka, PostgreSQL, and Kafka Connect)
+docker-compose up -d
+
+# Wait for services to be ready
+docker-compose ps  # All services should show "healthy"
+
+# Start Spring Boot application
+mvn spring-boot:run
+```
+
+### Web API Quick Start
+
+#### 1. Run Complete Day 7 Demo
+```bash
+# Execute full Kafka Connect demonstration
+curl -X POST http://localhost:8080/api/training/day07/demo
+
+# Response:
+{
+  "status": "success",
+  "message": "Day 7 Kafka Connect demonstration completed successfully",
+  "module": "Day07Connect",
+  "info": "JDBC source and sink connectors created for EventMart data integration"
+}
+```
+
+#### 2. Get Kafka Connect Cluster Information
+```bash
+# Check Kafka Connect cluster status
+curl http://localhost:8080/api/training/day07/connect/info
+
+# Response:
+{
+  "status": "success",
+  "clusterInfo": {
+    "version": "7.7.0",
+    "commit": "...",
+    "kafka_cluster_id": "..."
+  }
+}
+```
+
+#### 3. List Available Connector Plugins
+```bash
+# See all available connectors
+curl http://localhost:8080/api/training/day07/connectors/plugins
+
+# Response shows JDBC, File, and other connector types
+{
+  "status": "success",
+  "count": 8,
+  "plugins": [
+    {
+      "class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+      "version": "10.7.4"
+    },
+    ...
+  ]
+}
+```
+
+#### 4. Create JDBC Source Connector
+```bash
+# Create User Activity Log source connector (PostgreSQL → Kafka)
+curl -X POST http://localhost:8080/api/training/day07/connectors/create/user-activity-source
+
+# Create Product Events source connector
+curl -X POST http://localhost:8080/api/training/day07/connectors/create/product-events-source
+
+# Response:
+{
+  "status": "success",
+  "message": "Connector created successfully",
+  "connector": {...}
+}
+```
+
+#### 5. Create JDBC Sink Connector
+```bash
+# Create Order Events sink connector (Kafka → PostgreSQL)
+curl -X POST http://localhost:8080/api/training/day07/connectors/create/order-events-sink
+
+# This connector consumes from "order-events-avro" topic
+# and writes to PostgreSQL "orders" table
+```
+
+#### 6. List All Connectors
+```bash
+# See all active connectors
+curl http://localhost:8080/api/training/day07/connectors/list
+
+# Response:
+{
+  "status": "success",
+  "count": 3,
+  "connectors": [
+    "user-activity-source",
+    "product-events-source",
+    "order-events-sink"
+  ]
+}
+```
+
+#### 7. Check Connector Status
+```bash
+# Get detailed status of a connector
+curl http://localhost:8080/api/training/day07/connectors/user-activity-source/status
+
+# Response shows connector state and task information:
+{
+  "status": "success",
+  "connectorStatus": {
+    "name": "user-activity-source",
+    "connector": {
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    "tasks": [
+      {
+        "id": 0,
+        "state": "RUNNING",
+        "worker_id": "kafka-connect:8083"
+      }
+    ]
+  }
+}
+```
+
+#### 8. Connector Lifecycle Management
+```bash
+# Pause a connector
+curl -X POST http://localhost:8080/api/training/day07/connectors/user-activity-source/pause
+
+# Resume a connector
+curl -X POST http://localhost:8080/api/training/day07/connectors/user-activity-source/resume
+
+# Restart a connector
+curl -X POST http://localhost:8080/api/training/day07/connectors/user-activity-source/restart
+
+# Delete a connector
+curl -X DELETE http://localhost:8080/api/training/day07/connectors/user-activity-source/delete
+```
+
+### Service Layer Usage
+
+Day 7 functionality is also available through `Day07ConnectService`:
+
+```java
+@Autowired
+private Day07ConnectService connectService;
+
+// Run full demonstration
+connectService.demonstrateKafkaConnect();
+
+// Get cluster information
+Map<String, Object> clusterInfo = connectService.getConnectClusterInfo();
+
+// List all connectors
+Map<String, Object> connectors = connectService.listConnectors();
+
+// Create source connector
+Map<String, Object> result = connectService.createUserActivitySourceConnector();
+
+// Check connector status
+Map<String, Object> status = connectService.checkConnectorStatus("user-activity-source");
+
+// Lifecycle management
+connectService.pauseConnector("user-activity-source");
+connectService.resumeConnector("user-activity-source");
+connectService.restartConnector("user-activity-source");
+connectService.deleteConnector("user-activity-source");
+```
+
+### Understanding the Data Flow
+
+#### Source Connector Flow (PostgreSQL → Kafka)
+```
+PostgreSQL               Kafka Connect          Kafka Topics
+┌─────────────┐        ┌──────────────┐       ┌─────────────────┐
+│ EventMart   │        │ JDBC Source  │       │ jdbc-user_      │
+│ Database    │ ─────> │ Connector    │ ────> │ activity_log    │
+│             │        │              │       │                 │
+│ - users     │        │ Polls every  │       │ jdbc-product_   │
+│ - products  │        │ 5 seconds    │       │ events          │
+│ - orders    │        │              │       │                 │
+└─────────────┘        └──────────────┘       └─────────────────┘
+```
+
+#### Sink Connector Flow (Kafka → PostgreSQL)
+```
+Kafka Topics            Kafka Connect          PostgreSQL
+┌─────────────────┐    ┌──────────────┐       ┌─────────────┐
+│ order-events-   │    │ JDBC Sink    │       │ EventMart   │
+│ avro            │ ─> │ Connector    │ ────> │ Database    │
+│                 │    │              │       │             │
+│ (Avro format)   │    │ Consumes and │       │ orders      │
+│                 │    │ upserts      │       │ table       │
+└─────────────────┘    └──────────────┘       └─────────────┘
+```
+
+### EventMart Database Schema
+
+The PostgreSQL database includes 6 tables for comprehensive testing:
+
+1. **users** - User accounts and profiles
+2. **products** - Product catalog with pricing and inventory
+3. **orders** - Customer orders with items and shipping
+4. **payments** - Payment transactions and processing
+5. **user_activity_log** - CDC source for user activity events
+6. **product_events** - CDC source for product inventory changes
+
+All tables include sample data for immediate testing!
+
+### Verifying Data Flow
+
+#### Check Source Connector Data
+```bash
+# Consume from JDBC source topics
+docker exec kafka-training-kafka kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic jdbc-user_activity_log \
+  --from-beginning
+
+# You should see user activity records from PostgreSQL
+```
+
+#### Check Sink Connector Data
+```bash
+# Produce test data to order-events-avro topic
+# (Use Day06SchemaService to produce Avro-formatted order events)
+
+# Then check PostgreSQL for new records
+docker exec kafka-training-postgres psql -U eventmart -d eventmart \
+  -c "SELECT * FROM orders ORDER BY created_at DESC LIMIT 5;"
+```
+
+### Testing with Kafka UI
+
+The Docker Compose setup includes Kafka UI at http://localhost:8080 where you can:
+
+1. **Monitor Topics**: See jdbc-user_activity_log and jdbc-product_events topics
+2. **View Messages**: Inspect records flowing through source connectors
+3. **Check Connect**: View all connectors and their status
+4. **Monitor Schemas**: See Avro schemas registered for sink connectors
+
+### Monitoring Best Practices
+
+1. **Check Connector Health**
+   ```bash
+   # Monitor connector status regularly
+   curl http://localhost:8080/api/training/day07/connectors/user-activity-source/status
+   ```
+
+2. **Watch Kafka Topics**
+   - Monitor topic lag for sink connectors
+   - Check partition distribution
+   - Verify message throughput
+
+3. **Database Monitoring**
+   ```bash
+   # Check PostgreSQL activity
+   docker exec kafka-training-postgres psql -U eventmart -d eventmart \
+     -c "SELECT COUNT(*) FROM user_activity_log;"
+   ```
+
+4. **Error Handling**
+   - Check connector logs for failures
+   - Monitor dead letter queue topics
+   - Review task status for failures
+
+### Common Patterns
+
+#### Pattern 1: Database CDC with JDBC Source
+```java
+// Poll PostgreSQL tables every 5 seconds
+// Use incrementing ID column for tracking
+// Produce to Kafka with "jdbc-" topic prefix
+Map<String, Object> result = connectService.createUserActivitySourceConnector();
+```
+
+#### Pattern 2: Data Warehouse Sink with JDBC Sink
+```java
+// Consume Avro-formatted events from Kafka
+// Upsert into PostgreSQL based on record key
+// Auto-evolve schema with new fields
+Map<String, Object> result = connectService.createOrderEventsSinkConnector();
+```
+
+#### Pattern 3: Real-time Data Pipeline
+```
+1. Application writes to PostgreSQL (OLTP)
+2. JDBC Source connector streams changes to Kafka
+3. Kafka Streams processes and enriches data
+4. JDBC Sink connector writes to analytics database (OLAP)
+```
+
+### Troubleshooting Tips
+
+#### Issue: Connector Not Starting
+```bash
+# Check connector status
+curl http://localhost:8080/api/training/day07/connectors/my-connector/status
+
+# Common causes:
+# - PostgreSQL not ready (check health)
+# - Invalid configuration (check logs)
+# - Network connectivity (verify docker network)
+```
+
+#### Issue: No Data Flowing
+```bash
+# For source connectors:
+# 1. Verify PostgreSQL has data
+docker exec kafka-training-postgres psql -U eventmart -d eventmart \
+  -c "SELECT COUNT(*) FROM user_activity_log;"
+
+# 2. Check connector is polling
+curl http://localhost:8080/api/training/day07/connectors/user-activity-source/status
+
+# 3. Verify Kafka topics exist
+docker exec kafka-training-kafka kafka-topics --list --bootstrap-server localhost:9092
+```
+
+#### Issue: Sink Connector Failing
+```bash
+# Check for schema mismatches
+# Verify Avro schema compatibility
+# Review PostgreSQL table structure
+# Check for data type conversions
+```
+
+### Next Steps
+
+After completing the Quick Start:
+1. Read the full documentation below for architecture details
+2. Experiment with custom connector configurations
+3. Try the advanced SMT (Single Message Transform) examples
+4. Implement error handling and dead letter queues
+5. Set up monitoring and alerting
+
+---
+
 ## Morning Session (3 hours): Kafka Connect Fundamentals
 
 ### 1. What is Kafka Connect?

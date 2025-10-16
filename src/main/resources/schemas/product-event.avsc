@@ -1,0 +1,94 @@
+{
+  "type": "record",
+  "name": "ProductEvent",
+  "namespace": "com.training.kafka.avro",
+  "doc": "Schema for product events with schema evolution support",
+  "fields": [
+    {
+      "name": "productId",
+      "type": "string",
+      "doc": "Unique identifier for the product"
+    },
+    {
+      "name": "eventType",
+      "type": {
+        "type": "enum",
+        "name": "ProductEventType",
+        "symbols": ["CREATED", "UPDATED", "DELETED", "STOCK_CHANGED", "PRICE_CHANGED", "RESTOCKED"]
+      },
+      "doc": "The type of product event"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": "Timestamp when the event occurred (epoch millis)"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Product name"
+    },
+    {
+      "name": "category",
+      "type": "string",
+      "doc": "Product category (e.g., Electronics, Clothing, Books)"
+    },
+    {
+      "name": "price",
+      "type": "double",
+      "doc": "Product price in USD"
+    },
+    {
+      "name": "stockQuantity",
+      "type": "int",
+      "doc": "Available stock quantity"
+    },
+    {
+      "name": "description",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Product description (optional)"
+    },
+    {
+      "name": "attributes",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional product attributes (color, size, etc.)"
+    },
+    {
+      "name": "tags",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "default": [],
+      "doc": "Product tags for search and categorization"
+    },
+    {
+      "name": "vendor",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "VendorInfo",
+          "fields": [
+            {"name": "vendorId", "type": "string"},
+            {"name": "vendorName", "type": "string"},
+            {"name": "rating", "type": ["null", "double"], "default": null}
+          ]
+        }
+      ],
+      "default": null,
+      "doc": "Vendor information (optional)"
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1,
+      "doc": "Schema version for evolution tracking"
+    }
+  ]
+}

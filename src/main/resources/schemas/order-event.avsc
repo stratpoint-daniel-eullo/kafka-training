@@ -1,0 +1,111 @@
+{
+  "type": "record",
+  "name": "OrderEvent",
+  "namespace": "com.training.kafka.avro",
+  "doc": "Schema for order events with schema evolution support",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "Unique identifier for the order"
+    },
+    {
+      "name": "eventType",
+      "type": {
+        "type": "enum",
+        "name": "OrderEventType",
+        "symbols": ["CREATED", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED", "REFUNDED"]
+      },
+      "doc": "The type of order event"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": "Timestamp when the event occurred (epoch millis)"
+    },
+    {
+      "name": "userId",
+      "type": "string",
+      "doc": "User who placed the order"
+    },
+    {
+      "name": "orderItems",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "OrderItem",
+          "fields": [
+            {"name": "productId", "type": "string"},
+            {"name": "productName", "type": "string"},
+            {"name": "quantity", "type": "int"},
+            {"name": "pricePerUnit", "type": "double"},
+            {"name": "totalPrice", "type": "double"}
+          ]
+        }
+      },
+      "doc": "List of items in the order"
+    },
+    {
+      "name": "totalAmount",
+      "type": "double",
+      "doc": "Total order amount in USD"
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "doc": "Current order status"
+    },
+    {
+      "name": "shippingAddress",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Address",
+          "fields": [
+            {"name": "street", "type": "string"},
+            {"name": "city", "type": "string"},
+            {"name": "state", "type": "string"},
+            {"name": "zipCode", "type": "string"},
+            {"name": "country", "type": "string"}
+          ]
+        }
+      ],
+      "default": null,
+      "doc": "Shipping address (optional)"
+    },
+    {
+      "name": "paymentInfo",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "PaymentInfo",
+          "fields": [
+            {"name": "paymentMethod", "type": "string"},
+            {"name": "paymentId", "type": "string"},
+            {"name": "paymentStatus", "type": "string"}
+          ]
+        }
+      ],
+      "default": null,
+      "doc": "Payment information (optional)"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional order metadata (coupon codes, referral source, etc.)"
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1,
+      "doc": "Schema version for evolution tracking"
+    }
+  ]
+}

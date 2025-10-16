@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -46,13 +48,16 @@ class SpringBootKafkaTrainingTest {
     
     @Autowired
     private Day01FoundationService foundationService;
-    
+
     @Autowired
     private Day03ProducerService producerService;
-    
+
     @Autowired
     private Day04ConsumerService consumerService;
-    
+
+    @Autowired
+    private Day05StreamsService streamsService;
+
     @Autowired
     private EventMartService eventMartService;
     
@@ -74,6 +79,7 @@ class SpringBootKafkaTrainingTest {
         assertNotNull(foundationService, "Foundation service should be initialized");
         assertNotNull(producerService, "Producer service should be initialized");
         assertNotNull(consumerService, "Consumer service should be initialized");
+        assertNotNull(streamsService, "Streams service should be initialized");
         assertNotNull(eventMartService, "EventMart service should be initialized");
         
         // Verify services can perform basic operations
@@ -102,17 +108,21 @@ class SpringBootKafkaTrainingTest {
     @DisplayName("API should list all training modules")
     void shouldListAllTrainingModules() {
         // When: Accessing the modules API
-        ResponseEntity<Map> response = restTemplate.getForEntity(
-            "http://localhost:" + port + "/api/training/modules", Map.class);
-        
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+            "http://localhost:" + port + "/api/training/modules",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
         // Then: Should return all training modules
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        
+
         Map<String, Object> modules = response.getBody();
         assertTrue(modules.containsKey("Day01Foundation"), "Should contain Day01Foundation module");
         assertTrue(modules.containsKey("Day03Producers"), "Should contain Day03Producers module");
         assertTrue(modules.containsKey("Day04Consumers"), "Should contain Day04Consumers module");
+        assertTrue(modules.containsKey("Day05Streams"), "Should contain Day05Streams module");
         assertTrue(modules.containsKey("EventMart"), "Should contain EventMart module");
     }
     
@@ -120,9 +130,12 @@ class SpringBootKafkaTrainingTest {
     @DisplayName("Day01 Foundation API endpoints should work")
     void shouldWorkWithDay01FoundationAPI() {
         // When: Running foundation demo via API
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/training/day01/demo", null, Map.class);
-        
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+            "http://localhost:" + port + "/api/training/day01/demo",
+            HttpMethod.POST,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
         // Then: Should complete successfully
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -133,9 +146,12 @@ class SpringBootKafkaTrainingTest {
     @DisplayName("Day03 Producer API endpoints should work")
     void shouldWorkWithDay03ProducerAPI() {
         // When: Running producer demo via API
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/training/day03/demo", null, Map.class);
-        
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+            "http://localhost:" + port + "/api/training/day03/demo",
+            HttpMethod.POST,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
         // Then: Should complete successfully
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -146,30 +162,67 @@ class SpringBootKafkaTrainingTest {
     @DisplayName("Day04 Consumer API endpoints should work")
     void shouldWorkWithDay04ConsumerAPI() {
         // When: Running consumer demo via API
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/training/day04/demo", null, Map.class);
-        
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+            "http://localhost:" + port + "/api/training/day04/demo",
+            HttpMethod.POST,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
         // Then: Should complete successfully
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("success", response.getBody().get("status"));
     }
-    
+
+    @Test
+    @DisplayName("Day05 Streams API endpoints should work")
+    void shouldWorkWithDay05StreamsAPI() {
+        // When: Running streams demo via API
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+            "http://localhost:" + port + "/api/training/day05/demo",
+            HttpMethod.POST,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
+        // Then: Should complete successfully
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("success", response.getBody().get("status"));
+
+        // When: Getting streams status via API
+        ResponseEntity<Map<String, Object>> statusResponse = restTemplate.exchange(
+            "http://localhost:" + port + "/api/training/day05/streams/status",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
+        // Then: Should return status successfully
+        assertEquals(HttpStatus.OK, statusResponse.getStatusCode());
+        assertEquals("success", statusResponse.getBody().get("status"));
+        assertTrue(statusResponse.getBody().containsKey("streams"));
+    }
+
     @Test
     @DisplayName("EventMart API endpoints should work")
     void shouldWorkWithEventMartAPI() {
         // When: Creating EventMart topics via API
-        ResponseEntity<Map> topicsResponse = restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/training/eventmart/topics", null, Map.class);
-        
+        ResponseEntity<Map<String, Object>> topicsResponse = restTemplate.exchange(
+            "http://localhost:" + port + "/api/training/eventmart/topics",
+            HttpMethod.POST,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
         // Then: Should create topics successfully
         assertEquals(HttpStatus.OK, topicsResponse.getStatusCode());
         assertEquals("success", topicsResponse.getBody().get("status"));
-        
+
         // When: Getting EventMart status via API
-        ResponseEntity<Map> statusResponse = restTemplate.getForEntity(
-            "http://localhost:" + port + "/api/training/eventmart/status", Map.class);
-        
+        ResponseEntity<Map<String, Object>> statusResponse = restTemplate.exchange(
+            "http://localhost:" + port + "/api/training/eventmart/status",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
         // Then: Should return status successfully
         assertEquals(HttpStatus.OK, statusResponse.getStatusCode());
         assertEquals("success", statusResponse.getBody().get("status"));
@@ -181,33 +234,39 @@ class SpringBootKafkaTrainingTest {
     void shouldWorkWithEventMartSimulationAPI() {
         // Given: EventMart topics exist
         eventMartService.createEventMartTopics();
-        
+
         // When: Simulating user registration via API
-        ResponseEntity<Map> userResponse = restTemplate.postForEntity(
+        ResponseEntity<Map<String, Object>> userResponse = restTemplate.exchange(
             "http://localhost:" + port + "/api/training/eventmart/simulate/user" +
-            "?userId=test-user&email=test@example.com&name=Test User", 
-            null, Map.class);
-        
+            "?userId=test-user&email=test@example.com&name=Test User",
+            HttpMethod.POST,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
         // Then: Should simulate successfully
         assertEquals(HttpStatus.OK, userResponse.getStatusCode());
         assertEquals("success", userResponse.getBody().get("status"));
-        
+
         // When: Simulating product creation via API
-        ResponseEntity<Map> productResponse = restTemplate.postForEntity(
+        ResponseEntity<Map<String, Object>> productResponse = restTemplate.exchange(
             "http://localhost:" + port + "/api/training/eventmart/simulate/product" +
-            "?productId=test-product&name=Test Product&category=Electronics&price=99.99", 
-            null, Map.class);
-        
+            "?productId=test-product&name=Test Product&category=Electronics&price=99.99",
+            HttpMethod.POST,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
         // Then: Should simulate successfully
         assertEquals(HttpStatus.OK, productResponse.getStatusCode());
         assertEquals("success", productResponse.getBody().get("status"));
-        
+
         // When: Simulating order placement via API
-        ResponseEntity<Map> orderResponse = restTemplate.postForEntity(
+        ResponseEntity<Map<String, Object>> orderResponse = restTemplate.exchange(
             "http://localhost:" + port + "/api/training/eventmart/simulate/order" +
-            "?orderId=test-order&userId=test-user&amount=99.99", 
-            null, Map.class);
-        
+            "?orderId=test-order&userId=test-user&amount=99.99",
+            HttpMethod.POST,
+            null,
+            new ParameterizedTypeReference<Map<String, Object>>() {});
+
         // Then: Should simulate successfully
         assertEquals(HttpStatus.OK, orderResponse.getStatusCode());
         assertEquals("success", orderResponse.getBody().get("status"));
