@@ -719,6 +719,12 @@ docker exec postgres psql -U eventmart_user -d eventmart -c "SELECT 1"
     6. **REST API** enables programmatic management
     7. **EventMart integration** demonstrates real-world usage
 
+## Practice Exercises
+
+Ready to practice what you learned? Complete the **[Day 07 Exercises](../exercises/day07-exercises.md)** to apply today's concepts.
+
+These hands-on exercises will help you master the material before moving forward.
+
 ## Next Steps
 
 Continue to [Day 8: Advanced Topics](day08-advanced.md) for security, monitoring, and production best practices.

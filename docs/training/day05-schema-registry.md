@@ -761,6 +761,12 @@ public class EventMartAvroService {
     - Test schema evolution in staging
     - Monitor Schema Registry health
 
+## Practice Exercises
+
+Ready to practice what you learned? Complete the **[Day 05 Exercises](../exercises/day05-exercises.md)** to apply today's concepts.
+
+These hands-on exercises will help you master the material before moving forward.
+
 ## Next Steps
 
 Continue to [Day 6: Streams Processing](day06-streams.md) to learn about real-time stream processing with Kafka Streams.

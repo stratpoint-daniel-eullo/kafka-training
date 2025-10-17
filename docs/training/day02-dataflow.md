@@ -938,6 +938,17 @@ max.poll.interval.ms=300000
 # Ensure consumers process quickly
 ```
 
+## Practice Exercises
+
+Ready to practice what you learned? Complete the **[Day 2 Exercises](../exercises/day02-exercises.md)** to apply:
+
+- Delivery semantics (at-least-once, at-most-once, exactly-once)
+- Partitioning strategies (round-robin, key-based)
+- Consumer group operations
+- Offset management
+
+These hands-on exercises will help you master the material before moving forward.
+
 ## Next Steps
 
 Continue to [Day 3: Producers](day03-producers.md) for deep dive into producer patterns and configurations.
@@ -946,6 +957,7 @@ Continue to [Day 3: Producers](day03-producers.md) for deep dive into producer p
 - [Container Development Guide](../containers/testcontainers.md)
 - [API Reference](../api/training-endpoints.md)
 - [Data Flow Architecture](../architecture/data-flow.md)
+- **[All Practice Exercises](../exercises/index.md)** - Progressive challenges for capstone presentation
 
 ---
 

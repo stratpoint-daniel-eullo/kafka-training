@@ -117,6 +117,17 @@ nav:
       - Day 6 - Streams Processing: training/day06-streams.md
       - Day 7 - Kafka Connect: training/day07-connect.md
       - Day 8 - Advanced Topics: training/day08-advanced.md
+  - Practice Exercises:
+      - exercises/index.md
+      - Day 1 Exercises: exercises/day01-exercises.md
+      - Day 2 Exercises: exercises/day02-exercises.md
+      - Day 3 Exercises: exercises/day03-exercises.md
+      - Day 4 Exercises: exercises/day04-exercises.md
+      - Day 5 Exercises: exercises/day05-exercises.md
+      - Day 6 Exercises: exercises/day06-exercises.md
+      - Day 7 Exercises: exercises/day07-exercises.md
+      - Day 8 Exercises: exercises/day08-exercises.md
+      - Capstone Presentation Guide: exercises/capstone-guide.md
   - Container Development:
       - containers/index.md
       - Why Containers for Data Engineers: containers/why-containers.md

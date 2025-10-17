@@ -758,6 +758,12 @@ You have completed the 8-day Kafka training program. You now have the skills to:
 - Troubleshoot production issues
 - Optimize performance
 
+## Practice Exercises
+
+Ready to practice what you learned? Complete the **[Day 08 Exercises](../exercises/day08-exercises.md)** to apply today's concepts.
+
+These hands-on exercises will help you master the material before moving forward.
+
 ## Next Steps
 
 **Continue Learning:**

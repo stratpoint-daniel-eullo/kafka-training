@@ -797,6 +797,12 @@ docker exec kafka-training-kafka kafka-console-consumer \
     6. **Dead letter queues** capture messages that can't be processed
     7. **Configuration tuning** balances latency, throughput, and reliability
 
+## Practice Exercises
+
+Ready to practice what you learned? Complete the **[Day 03 Exercises](../exercises/day03-exercises.md)** to apply today's concepts.
+
+These hands-on exercises will help you master the material before moving forward.
+
 ## Next Steps
 
 Continue to [Day 4: Consumers](day04-consumers.md) for deep dive into consumer patterns and configurations.

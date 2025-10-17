@@ -513,6 +513,17 @@ docker-compose down -v
 docker-compose up -d
 ```
 
+## Practice Exercises
+
+Ready to practice what you learned? Complete the **[Day 1 Exercises](../exercises/day01-exercises.md)** to reinforce:
+
+- Topic creation and management
+- Partition distribution and leadership
+- Configuration management
+- AdminClient API usage
+
+These hands-on exercises will solidify your understanding before moving forward.
+
 ## Next Steps
 
 Ready for Day 2? Continue to [Day 2: Data Flow and Message Patterns](day02-dataflow.md)
@@ -522,6 +533,7 @@ Or explore:
 - [Container Development Guide](../containers/docker-basics.md)
 - [API Reference](../api/training-endpoints.md)
 - [Architecture Overview](../architecture/system-design.md)
+- **[All Practice Exercises](../exercises/index.md)** - Progressive challenges for capstone presentation
 
 ---
 

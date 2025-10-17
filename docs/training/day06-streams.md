@@ -810,6 +810,12 @@ public class FraudDetection {
     6. **Joins** combine data from multiple streams
     7. **Interactive queries** expose state store data
 
+## Practice Exercises
+
+Ready to practice what you learned? Complete the **[Day 06 Exercises](../exercises/day06-exercises.md)** to apply today's concepts.
+
+These hands-on exercises will help you master the material before moving forward.
+
 ## Next Steps
 
 Continue to [Day 7: Kafka Connect](day07-connect.md) to learn about data integration with Kafka Connect.

@@ -881,6 +881,12 @@ curl -X POST http://localhost:8080/api/training/day04/seek-timestamp \
     6. **Error handling** requires retry logic and dead letter queues
     7. **Configuration tuning** balances throughput and reliability
 
+## Practice Exercises
+
+Ready to practice what you learned? Complete the **[Day 04 Exercises](../exercises/day04-exercises.md)** to apply today's concepts.
+
+These hands-on exercises will help you master the material before moving forward.
+
 ## Next Steps
 
 Continue to [Day 5: Schema Registry](day05-schema-registry.md) to learn about schema management and evolution.
