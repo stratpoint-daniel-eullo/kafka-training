@@ -1,0 +1,172 @@
+# Kafka Training - Container-First Data Engineering Documentation
+site_name: Kafka Training - Container-First Data Engineering
+site_description: Comprehensive 8-day Apache Kafka training program with Spring Boot, Docker, and Kubernetes for data engineers
+site_author: Kafka Training Team
+site_url: https://yourusername.github.io/kafka-training-java
+
+repo_name: kafka-training-java
+repo_url: https://github.com/yourusername/kafka-training-java
+edit_uri: edit/master/docs/
+
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: default
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Work Sans
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/kafka-logo.svg
+  favicon: assets/favicon.png
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid-init.js
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - toc:
+      permalink: true
+      permalink_title: Link to this section
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: yourusername
+      repo: kafka-training-java
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting-started/index.md
+      - Overview: getting-started/overview.md
+      - Prerequisites: getting-started/prerequisites.md
+      - Quick Start: getting-started/quick-start.md
+      - Installation: getting-started/installation.md
+  - Training Curriculum:
+      - training/index.md
+      - Day 1 - Foundation: training/day01-foundation.md
+      - Day 2 - Data Flow: training/day02-dataflow.md
+      - Day 3 - Producers: training/day03-producers.md
+      - Day 4 - Consumers: training/day04-consumers.md
+      - Day 5 - Schema Registry: training/day05-schema-registry.md
+      - Day 6 - Streams Processing: training/day06-streams.md
+      - Day 7 - Kafka Connect: training/day07-connect.md
+      - Day 8 - Advanced Topics: training/day08-advanced.md
+  - Container Development:
+      - containers/index.md
+      - Why Containers for Data Engineers: containers/why-containers.md
+      - Docker Basics: containers/docker-basics.md
+      - Docker Compose Development: containers/docker-compose.md
+      - TestContainers Testing: containers/testcontainers.md
+      - Container Best Practices: containers/best-practices.md
+  - Production Deployment:
+      - deployment/index.md
+      - Kubernetes Overview: deployment/kubernetes-overview.md
+      - Deployment Guide: deployment/deployment-guide.md
+      - Monitoring & Observability: deployment/monitoring.md
+      - Scaling Strategies: deployment/scaling.md
+      - Production Checklist: deployment/checklist.md
+  - API Reference:
+      - api/index.md
+      - Training Endpoints: api/training-endpoints.md
+      - EventMart API: api/eventmart-api.md
+      - Actuator Endpoints: api/actuator.md
+      - Error Handling: api/errors.md
+  - Architecture:
+      - architecture/index.md
+      - System Design: architecture/system-design.md
+      - Technology Stack: architecture/tech-stack.md
+      - Data Flow: architecture/data-flow.md
+      - Container Architecture: architecture/container-architecture.md
+      - Security: architecture/security.md
+  - Contributing:
+      - contributing/index.md
+      - Development Setup: contributing/development-setup.md
+      - Testing Guidelines: contributing/testing.md
+      - Code Style: contributing/code-style.md
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/yourusername/kafka-training-java
+      name: GitHub Repository
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/yourusername/kafka-training
+      name: Docker Hub
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX
+  version:
+    provider: mike
+    default: latest
+
+copyright: Copyright &copy; 2025 Kafka Training Team

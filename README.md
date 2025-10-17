@@ -7,6 +7,10 @@
 ![Docker](https://img.shields.io/badge/Docker-Supported-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
+## 📚 Documentation
+
+**[View Complete Documentation](https://yourusername.github.io/kafka-training-java)** - Full MkDocs Material site with comprehensive guides, API reference, and architecture diagrams.
+
 ## 🎯 Overview
 
 This comprehensive 8-day training course takes you from zero to proficient with Apache Kafka using **Spring Boot and Java**. Designed for developers of all levels, it provides hands-on experience with real-world scenarios and follows industry best practices with modern Spring Boot integration.

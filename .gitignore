@@ -49,3 +49,14 @@ PROGRESSIVE-PROJECT-SUMMARY.md
 TRAINING-SUMMARY.md
 CLEANUP-SUMMARY.md
 AVRO-WARNINGS-EXPLAINED.md
+
+# MkDocs
+site/
+.cache/
+*.pyc
+__pycache__/
+
+# Environment
+.env
+.env.local
+.env.*.local
