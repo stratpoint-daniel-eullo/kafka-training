@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
@@ -57,9 +57,18 @@ public class Day06SchemaService {
 
     @PostConstruct
     public void init() {
-        String schemaRegistryUrl = kafkaProperties.getKafka().getSchemaRegistryUrl();
-        schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryUrl, 100);
-        logger.info("Schema Registry client initialized with URL: {}", schemaRegistryUrl);
+        try {
+            String schemaRegistryUrl = kafkaProperties.getKafka().getSchemaRegistryUrl();
+            if (schemaRegistryUrl != null && !schemaRegistryUrl.trim().isEmpty()) {
+                schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryUrl, 100);
+                logger.info("Schema Registry client initialized with URL: {}", schemaRegistryUrl);
+            } else {
+                logger.warn("Schema Registry URL not configured - Schema Registry features will be unavailable");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to initialize Schema Registry client: {}", e.getMessage());
+            logger.warn("Schema Registry features will be unavailable");
+        }
     }
 
     @PreDestroy
@@ -228,6 +237,13 @@ public class Day06SchemaService {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            if (schemaRegistryClient == null) {
+                result.put("status", "error");
+                result.put("message", "Failed to list schemas: Cannot invoke \"io.confluent.kafka.schemaregistry.client.SchemaRegistryClient.getAllSubjects()\" because \"this.schemaRegistryClient\" is null");
+                result.put("hint", "Ensure Schema Registry is running at http://localhost:8082");
+                return result;
+            }
+
             Collection<String> subjects = schemaRegistryClient.getAllSubjects();
             List<Map<String, Object>> schemaList = new ArrayList<>();
 
@@ -253,7 +269,8 @@ public class Day06SchemaService {
         } catch (IOException | RestClientException e) {
             logger.error("Error listing schemas", e);
             result.put("status", "error");
-            result.put("message", e.getMessage());
+            result.put("message", "Failed to list schemas: " + e.getMessage());
+            result.put("hint", "Ensure Schema Registry is running at http://localhost:8082");
         }
 
         return result;

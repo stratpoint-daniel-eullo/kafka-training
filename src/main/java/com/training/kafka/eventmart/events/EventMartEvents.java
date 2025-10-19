@@ -21,7 +21,7 @@ import java.util.UUID;
  */
 public class EventMartEvents {
     
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
     
     // Base Event Interface
     public interface EventMartEvent {

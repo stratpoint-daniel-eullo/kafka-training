@@ -33,7 +33,7 @@ public class StreamProcessor {
     private static final String USER_ACTIVITY_SUMMARY_TOPIC = "user-activity-summary";
     private static final String FRAUD_ALERTS_TOPIC = "fraud-alerts";
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
     private KafkaStreams streams;
 
     public StreamProcessor(String bootstrapServers) {

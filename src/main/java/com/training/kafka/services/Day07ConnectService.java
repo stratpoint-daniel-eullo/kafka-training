@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 
 /**
@@ -40,8 +40,17 @@ public class Day07ConnectService {
 
     @PostConstruct
     public void init() {
-        connectUrl = kafkaProperties.getKafka().getConnectUrl();
-        logger.info("Kafka Connect REST API initialized at: {}", connectUrl);
+        try {
+            connectUrl = kafkaProperties.getKafka().getConnectUrl();
+            if (connectUrl == null || connectUrl.trim().isEmpty()) {
+                connectUrl = "http://localhost:8083"; // Default value
+                logger.warn("Kafka Connect URL not configured, using default: {}", connectUrl);
+            }
+            logger.info("Kafka Connect REST API initialized at: {}", connectUrl);
+        } catch (Exception e) {
+            connectUrl = "http://localhost:8083"; // Fallback
+            logger.error("Failed to get Kafka Connect URL from properties, using default: {}", connectUrl);
+        }
     }
 
     /**
@@ -110,7 +119,13 @@ public class Day07ConnectService {
         } catch (RestClientException e) {
             logger.error("Error getting Connect cluster info: {}", e.getMessage());
             result.put("status", "error");
-            result.put("message", e.getMessage());
+            result.put("message", "Failed to get Connect cluster info: " + e.getMessage());
+            result.put("hint", "Ensure Kafka Connect is running at " + connectUrl);
+        } catch (Exception e) {
+            logger.error("Unexpected error: {}", e.getMessage());
+            result.put("status", "error");
+            result.put("message", "Failed to get Connect cluster info: " + e.getMessage());
+            result.put("hint", "Ensure Kafka Connect is running at " + connectUrl);
         }
 
         return result;

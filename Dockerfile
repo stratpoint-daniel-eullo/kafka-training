@@ -2,27 +2,31 @@
 # This Dockerfile builds the Spring Boot application and creates an optimized runtime image
 
 # Build stage
-FROM maven:3.9.6-eclipse-temurin-11 AS builder
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 # Set working directory
 WORKDIR /app
 
 # Copy Maven configuration files
 COPY pom.xml .
-COPY .mvn .mvn
-COPY mvnw .
 
 # Download dependencies (this layer will be cached if pom.xml doesn't change)
-RUN mvn dependency:go-offline -B
+# Use BuildKit cache mount for Maven local repository and parallel downloads.
+# Requires building with DOCKER_BUILDKIT=1. This caches ~/.m2 between builds.
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -T1C dependency:go-offline -B || \
+    mvn -T1C dependency:go-offline -B || \
+    mvn -T1C dependency:go-offline -B
 
 # Copy source code
 COPY src ./src
 
 # Build the application
-RUN mvn clean package -DskipTests -B
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn clean package -DskipTests -B
 
 # Runtime stage
-FROM eclipse-temurin:11-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 # Install curl for health checks
 RUN apk add --no-cache curl

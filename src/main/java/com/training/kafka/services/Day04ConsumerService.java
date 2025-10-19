@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -58,9 +59,9 @@ public class Day04ConsumerService {
     public void listenToUserEvents(
             @Payload String message,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-            @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
+            @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
-            @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key,
+            @Header(KafkaHeaders.RECEIVED_KEY) String key,
             Acknowledgment acknowledgment) {
         
         try {
@@ -93,9 +94,9 @@ public class Day04ConsumerService {
     public void listenToDemoTopics(
             @Payload String message,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-            @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
+            @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
-            @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key,
+            @Header(KafkaHeaders.RECEIVED_KEY) String key,
             Acknowledgment acknowledgment) {
         
         logger.info("🎯 Demo message received: topic={}, partition={}, offset={}, key={}, value={}", 
@@ -109,9 +110,9 @@ public class Day04ConsumerService {
      */
     public void consumeMessagesRaw(String topic, String groupId, int maxMessages) {
         logger.info("🔄 Starting raw consumer for topic '{}' with group '{}'", topic, groupId);
-        
-        // Create consumer with custom group ID
-        Map<String, Object> consumerProps = consumerFactory.getConfigurationProperties();
+
+        // Create consumer with custom group ID (copy to mutable map)
+        Map<String, Object> consumerProps = new HashMap<>(consumerFactory.getConfigurationProperties());
         consumerProps.put("group.id", groupId);
         
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {

@@ -28,7 +28,7 @@ public class ConnectorManager {
     public ConnectorManager(String connectUrl) {
         this.connectUrl = connectUrl;
         this.httpClient = HttpClient.newHttpClient();
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = new ObjectMapper().findAndRegisterModules();
         logger.info("Kafka Connect Manager initialized for URL: {}", connectUrl);
     }
 

@@ -227,6 +227,7 @@ public class Day02DataFlowService {
 
             // Show offset information
             logger.info("\n💡 Offset Management:");
+            logger.info("  - Group ID: {}", groupId);
             logger.info("  - Committed offset: Last processed message + 1");
             logger.info("  - Current offset: Next message to read");
             logger.info("  - Lag: Difference between log-end and committed offset");

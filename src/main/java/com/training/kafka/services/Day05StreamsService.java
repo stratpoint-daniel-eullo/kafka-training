@@ -13,8 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class Day05StreamsService {
     private static final Logger logger = LoggerFactory.getLogger(Day05StreamsService.class);
 
     private final TrainingKafkaProperties kafkaProperties;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     private KafkaStreams userActivityStream;
     private KafkaStreams orderAnalyticsStream;
@@ -701,7 +701,7 @@ public class Day05StreamsService {
     private static class OrderMetricsSerde extends org.apache.kafka.common.serialization.Serdes.WrapperSerde<OrderMetrics> {
         public OrderMetricsSerde() {
             super(new org.apache.kafka.common.serialization.Serializer<OrderMetrics>() {
-                private final ObjectMapper mapper = new ObjectMapper();
+                private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
                 @Override
                 public byte[] serialize(String topic, OrderMetrics data) {
                     try {
@@ -711,7 +711,7 @@ public class Day05StreamsService {
                     }
                 }
             }, new org.apache.kafka.common.serialization.Deserializer<OrderMetrics>() {
-                private final ObjectMapper mapper = new ObjectMapper();
+                private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
                 @Override
                 public OrderMetrics deserialize(String topic, byte[] data) {
                     try {
@@ -727,7 +727,7 @@ public class Day05StreamsService {
     private static class PaymentMetricsSerde extends org.apache.kafka.common.serialization.Serdes.WrapperSerde<PaymentMetrics> {
         public PaymentMetricsSerde() {
             super(new org.apache.kafka.common.serialization.Serializer<PaymentMetrics>() {
-                private final ObjectMapper mapper = new ObjectMapper();
+                private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
                 @Override
                 public byte[] serialize(String topic, PaymentMetrics data) {
                     try {
@@ -737,7 +737,7 @@ public class Day05StreamsService {
                     }
                 }
             }, new org.apache.kafka.common.serialization.Deserializer<PaymentMetrics>() {
-                private final ObjectMapper mapper = new ObjectMapper();
+                private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
                 @Override
                 public PaymentMetrics deserialize(String topic, byte[] data) {
                     try {

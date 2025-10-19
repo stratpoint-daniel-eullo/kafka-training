@@ -21,7 +21,7 @@ import java.util.*;
  */
 public class SampleDataGenerator {
     private static final Logger logger = LoggerFactory.getLogger(SampleDataGenerator.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
     private static final Random random = new Random();
 
     // Sample data arrays

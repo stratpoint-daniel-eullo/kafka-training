@@ -9,10 +9,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -65,18 +64,14 @@ public class Day03ProducerService {
      * Send a message asynchronously using Spring Kafka Template
      */
     public void sendMessageAsyncSpring(String topic, String key, String message) {
-        ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, key, message);
-        
-        future.addCallback(new ListenableFutureCallback<SendResult<String, String>>() {
-            @Override
-            public void onSuccess(SendResult<String, String> result) {
+        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, key, message);
+
+        future.whenComplete((result, ex) -> {
+            if (ex == null) {
                 RecordMetadata metadata = result.getRecordMetadata();
-                logger.info("✅ Message sent successfully (Spring Async): topic={}, partition={}, offset={}, key={}", 
+                logger.info("✅ Message sent successfully (Spring Async): topic={}, partition={}, offset={}, key={}",
                     metadata.topic(), metadata.partition(), metadata.offset(), key);
-            }
-            
-            @Override
-            public void onFailure(Throwable ex) {
+            } else {
                 logger.error("❌ Failed to send message (Spring Async): {}", ex.getMessage(), ex);
             }
         });
@@ -160,37 +155,41 @@ public class Day03ProducerService {
      * Demonstrate different producer patterns
      */
     public void demonstrateProducerPatterns(String topic) {
-        logger.info("🎓 Starting Day 3 Producer Demonstration");
-        
+        logger.info("Starting Day 3 Producer Demonstration for topic: {}", topic);
+
         try {
             // 1. Synchronous sending with Spring
-            logger.info("1️⃣  Demonstrating synchronous sending with Spring Kafka Template");
-            sendMessageSyncSpring(topic, "sync-spring", "Synchronous message via Spring");
-            
+            logger.info("Step 1: Demonstrating synchronous sending with Spring Kafka Template");
+            boolean syncSuccess = sendMessageSyncSpring(topic, "sync-spring", "Synchronous message via Spring");
+            logger.info("Synchronous send result: {}", syncSuccess);
+
             // 2. Asynchronous sending with Spring
-            logger.info("2️⃣  Demonstrating asynchronous sending with Spring Kafka Template");
+            logger.info("Step 2: Demonstrating asynchronous sending with Spring Kafka Template");
             sendMessageAsyncSpring(topic, "async-spring", "Asynchronous message via Spring");
-            
+
             // 3. Synchronous sending with raw producer
-            logger.info("3️⃣  Demonstrating synchronous sending with Raw Kafka Producer");
-            sendMessageSyncRaw(topic, "sync-raw", "Synchronous message via Raw Producer");
-            
+            logger.info("Step 3: Demonstrating synchronous sending with Raw Kafka Producer");
+            boolean rawSuccess = sendMessageSyncRaw(topic, "sync-raw", "Synchronous message via Raw Producer");
+            logger.info("Raw synchronous send result: {}", rawSuccess);
+
             // 4. Asynchronous sending with raw producer
-            logger.info("4️⃣  Demonstrating asynchronous sending with Raw Kafka Producer");
+            logger.info("Step 4: Demonstrating asynchronous sending with Raw Kafka Producer");
             sendMessageAsyncRaw(topic, "async-raw", "Asynchronous message via Raw Producer");
-            
+
             // 5. Batch sending
-            logger.info("5️⃣  Demonstrating batch sending");
+            logger.info("Step 5: Demonstrating batch sending");
             sendBatchMessagesSpring(topic, 5);
-            sendBatchMessagesRaw(topic, 5);
-            
-            // Wait a bit for async operations to complete
-            Thread.sleep(1000);
-            
-            logger.info("✅ Day 3 Producer Demonstration completed successfully");
-            
+
+            // Wait for async operations to complete
+            Thread.sleep(500);
+
+            logger.info("Day 3 Producer Demonstration completed successfully");
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("Day 3 Producer Demonstration interrupted", e);
         } catch (Exception e) {
-            logger.error("❌ Day 3 Producer Demonstration failed: {}", e.getMessage(), e);
+            logger.error("Day 3 Producer Demonstration encountered an error: {}", e.getMessage(), e);
         }
     }
     

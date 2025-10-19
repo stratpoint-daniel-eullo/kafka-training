@@ -3,458 +3,1210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kafka Training Course - Spring Boot</title>
+    <title>Kafka Training Platform</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            margin: 0;
-            font-size: 2.5em;
-            font-weight: 300;
-        }
-        
-        .header p {
-            margin: 10px 0 0 0;
-            opacity: 0.9;
-            font-size: 1.1em;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .module {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border-left: 5px solid #007bff;
-        }
-        
-        .module h2 {
-            margin: 0 0 15px 0;
-            color: #2c3e50;
-            font-size: 1.5em;
-        }
-        
-        .module p {
-            margin: 0 0 20px 0;
-            color: #666;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
             line-height: 1.6;
         }
-        
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .header-subtitle {
+            color: var(--gray-600);
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: var(--gray-100);
+            border-radius: 8px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .mode-description {
+            margin-top: 12px;
+            padding: 16px;
+            background: white;
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            font-size: 14px;
+            color: var(--gray-700);
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+        }
+
+        .module {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        .module-header {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .module-title-wrapper h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .module-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--gray-100);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-600);
+        }
+
+        .module-desc {
+            color: var(--gray-600);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .module-section {
+            margin-bottom: 20px;
+        }
+
+        .section-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .button-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
-        
+
         .btn {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
+            padding: 10px 20px;
             font-size: 14px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
+            font-weight: 500;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            background: white;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all 0.15s;
         }
-        
+
         .btn:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+            background: var(--gray-50);
+            border-color: var(--gray-400);
         }
-        
-        .btn-success { background: #28a745; }
-        .btn-success:hover { background: #1e7e34; }
-        
-        .btn-warning { background: #ffc107; color: #212529; }
-        .btn-warning:hover { background: #e0a800; }
-        
-        .btn-info { background: #17a2b8; }
-        .btn-info:hover { background: #117a8b; }
-        
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+            border-color: var(--warning);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
         .input-group {
             display: flex;
-            gap: 10px;
-            margin: 15px 0;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+            background: var(--gray-50);
+            border-radius: 8px;
+        }
+
+        .input-row {
+            display: flex;
             align-items: center;
+            gap: 12px;
         }
-        
-        .input-group input {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+
+        .input-row label {
+            min-width: 100px;
             font-size: 14px;
-        }
-        
-        .input-group label {
             font-weight: 500;
-            min-width: 80px;
+            color: var(--gray-700);
         }
-        
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 6px;
-            font-family: monospace;
+
+        .input-row input,
+        .input-row select {
+            flex: 1;
+            padding: 8px 12px;
             font-size: 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            background: white;
+        }
+
+        .input-row input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .result {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.5;
+            display: none;
+            border-left: 4px solid;
+        }
+
+        .result.success {
+            background: #f0fdf4;
+            border-color: var(--success);
+            color: #166534;
+        }
+
+        .result.error {
+            background: #fef2f2;
+            border-color: var(--danger);
+            color: #991b1b;
+        }
+
+        .result.info {
+            background: #eff6ff;
+            border-color: var(--primary);
+            color: #1e40af;
+        }
+
+        .result pre {
+            margin-top: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .streams-control {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .stream-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--gray-50);
+            border-radius: 6px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .stream-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .stream-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gray-300);
+        }
+
+        .stream-indicator.active {
+            background: var(--success);
+        }
+
+        .stream-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .stream-controls .btn {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+
+        .footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-200);
+            text-align: center;
+            color: var(--gray-600);
+            font-size: 14px;
+        }
+
+        .demo-only, .testing-only {
             display: none;
         }
-        
-        .result.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-        
-        .result.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-        
-        .status {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
-        .footer {
-            background: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            color: #666;
-            border-top: 1px solid #dee2e6;
-        }
-        
+
         @media (max-width: 768px) {
-            .button-group {
-                flex-direction: column;
-            }
-            
-            .input-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .input-group label {
-                min-width: auto;
+            .modules-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="status" id="status">🚀 Kafka Training Ready</div>
-    
     <div class="container">
         <div class="header">
-            <h1>🎓 Apache Kafka Training Course</h1>
-            <p>Interactive Spring Boot Web Interface - From Beginner to Advanced</p>
+            <div class="header-top">
+                <h1>Apache Kafka Training Platform</h1>
+                <div class="status-badge">
+                    <span class="status-indicator"></span>
+                    <span id="statusText">System Ready</span>
+                </div>
+            </div>
+            <p class="header-subtitle">Interactive platform for learning Kafka concepts, running demonstrations, and testing implementations</p>
+
+            <div class="mode-selector">
+                <button class="mode-btn active" id="modeDemo" onclick="setMode('demo')">
+                    <div style="font-size: 16px; margin-bottom: 4px;">Demo Mode</div>
+                    <div style="font-size: 12px; opacity: 0.8;">Run automated demonstrations</div>
+                </button>
+                <button class="mode-btn" id="modeTesting" onclick="setMode('testing')">
+                    <div style="font-size: 16px; margin-bottom: 4px;">Testing Mode</div>
+                    <div style="font-size: 12px; opacity: 0.8;">Manual operations and testing</div>
+                </button>
+            </div>
+
+            <div class="mode-description">
+                <div id="demoDesc" style="display: block;">
+                    <strong>Demo Mode:</strong> Run automated demonstrations to see Kafka concepts in action - producers, consumers, streams, and other components working together.
+                </div>
+                <div id="testingDesc" style="display: none;">
+                    <strong>Testing Mode:</strong> Manually interact with Kafka cluster - create topics, send messages, consume data, and test your exercise implementations.
+                </div>
+            </div>
         </div>
-        
-        <div class="content">
-            <!-- Day 01 Foundation -->
+
+        <div class="modules-grid">
+            <!-- Day 01 -->
             <div class="module">
-                <h2>📚 Day 1: Kafka Fundamentals</h2>
-                <p>Learn basic Kafka concepts and topic operations using AdminClient</p>
-                
-                <div class="button-group">
-                    <button class="btn btn-success" onclick="runDemo('day01')">Run Foundation Demo</button>
-                    <button class="btn btn-info" onclick="listTopics()">List Topics</button>
+                <div class="module-header">
+                    <div class="module-title-wrapper">
+                        <h3>Day 1: Kafka Fundamentals</h3>
+                        <span class="module-badge">Foundation</span>
+                    </div>
                 </div>
-                
-                <div class="input-group">
-                    <label>Topic Name:</label>
-                    <input type="text" id="topicName" placeholder="my-topic" value="training-topic">
-                    <label>Partitions:</label>
-                    <input type="number" id="partitions" value="3" min="1" max="10">
-                    <button class="btn" onclick="createTopic()">Create Topic</button>
+                <p class="module-desc">Topic management, AdminClient operations, partition strategies, and cluster administration.</p>
+
+                <div class="module-section demo-only">
+                    <div class="section-label">Demonstration</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="runDemo('day01')">Run Demo</button>
+                        <button class="btn" onclick="listTopics()">List Topics</button>
+                    </div>
                 </div>
-                
+
+                <div class="module-section testing-only">
+                    <div class="section-label">Testing</div>
+                    <div class="input-group">
+                        <div class="input-row">
+                            <label>Topic Name</label>
+                            <input type="text" id="topicName" placeholder="my-topic" value="training-topic">
+                        </div>
+                        <div class="input-row">
+                            <label>Partitions</label>
+                            <input type="number" id="partitions" value="3" min="1" max="10">
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-success" onclick="createTopic()">Create Topic</button>
+                            <button class="btn" onclick="listTopics()">List Topics</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="result" id="day01Result"></div>
             </div>
-            
-            <!-- Day 03 Producers -->
+
+            <!-- Day 02 -->
             <div class="module">
-                <h2>📤 Day 3: Message Producers</h2>
-                <p>Learn how to publish messages to Kafka topics using producers</p>
-                
-                <div class="button-group">
-                    <button class="btn btn-success" onclick="runDemo('day03')">Run Producer Demo</button>
-                    <button class="btn btn-warning" onclick="sendBatchMessages()">Send Batch Messages</button>
+                <div class="module-header">
+                    <div class="module-title-wrapper">
+                        <h3>Day 2: Data Flow & Patterns</h3>
+                        <span class="module-badge">Core Concepts</span>
+                    </div>
                 </div>
-                
-                <div class="input-group">
-                    <label>Topic:</label>
-                    <input type="text" id="producerTopic" placeholder="user-events" value="user-events">
-                    <label>Key:</label>
-                    <input type="text" id="messageKey" placeholder="user-123" value="user-1">
-                    <label>Message:</label>
-                    <input type="text" id="messageValue" placeholder="Hello Kafka!" value="Hello from Web Interface!">
-                    <button class="btn" onclick="sendMessage()">Send Message</button>
+                <p class="module-desc">Producer/consumer semantics, offset management, partitioning strategies, and message ordering.</p>
+
+                <div class="module-section demo-only">
+                    <div class="section-label">Demonstration</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="runDemo('day02')">Run Demo</button>
+                        <button class="btn" onclick="getDataFlowConcepts()">View Concepts</button>
+                    </div>
                 </div>
-                
+
+                <div class="module-section testing-only">
+                    <div class="section-label">Testing</div>
+                    <div class="input-group">
+                        <div class="input-row">
+                            <label>Group ID</label>
+                            <input type="text" id="day02GroupId" placeholder="consumer-group" value="training-group">
+                        </div>
+                        <div class="button-group">
+                            <button class="btn" onclick="getConsumerLag()">Check Consumer Lag</button>
+                            <button class="btn" onclick="getOffsets()">Get Offsets</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result" id="day02Result"></div>
+            </div>
+
+            <!-- Day 03 -->
+            <div class="module">
+                <div class="module-header">
+                    <div class="module-title-wrapper">
+                        <h3>Day 3: Message Producers</h3>
+                        <span class="module-badge">Publishing</span>
+                    </div>
+                </div>
+                <p class="module-desc">Producer implementations, message sending patterns, error handling, and performance optimization.</p>
+
+                <div class="module-section demo-only">
+                    <div class="section-label">Demonstration</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="runDemo('day03')">Run Demo</button>
+                        <button class="btn btn-warning" onclick="sendBatchMessages()">Send Batch Demo</button>
+                    </div>
+                </div>
+
+                <div class="module-section testing-only">
+                    <div class="section-label">Testing</div>
+                    <div class="input-group">
+                        <div class="input-row">
+                            <label>Topic</label>
+                            <input type="text" id="producerTopic" placeholder="user-events" value="user-events">
+                        </div>
+                        <div class="input-row">
+                            <label>Key</label>
+                            <input type="text" id="messageKey" placeholder="user-1" value="user-1">
+                        </div>
+                        <div class="input-row">
+                            <label>Message</label>
+                            <input type="text" id="messageValue" placeholder="Message" value="Test message">
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-success" onclick="sendMessage()">Send Message</button>
+                            <button class="btn btn-warning" onclick="sendBatchMessages()">Send Batch (10)</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="result" id="day03Result"></div>
             </div>
-            
-            <!-- Day 04 Consumers -->
+
+            <!-- Day 04 -->
             <div class="module">
-                <h2>📥 Day 4: Message Consumers</h2>
-                <p>Learn how to process messages from Kafka topics using consumers</p>
-                
-                <div class="button-group">
-                    <button class="btn btn-success" onclick="runDemo('day04')">Run Consumer Demo</button>
-                    <button class="btn btn-info" onclick="getConsumerStats()">Get Consumer Stats</button>
-                    <button class="btn btn-warning" onclick="consumeRawMessages()">Consume Raw Messages</button>
+                <div class="module-header">
+                    <div class="module-title-wrapper">
+                        <h3>Day 4: Message Consumers</h3>
+                        <span class="module-badge">Processing</span>
+                    </div>
                 </div>
-                
-                <div class="input-group">
-                    <label>Topic:</label>
-                    <input type="text" id="consumerTopic" placeholder="user-events" value="user-events">
-                    <label>Group ID:</label>
-                    <input type="text" id="groupId" placeholder="web-group" value="web-consumer-group">
-                    <label>Max Messages:</label>
-                    <input type="number" id="maxMessages" value="5" min="1" max="50">
+                <p class="module-desc">Consumer implementations, consumer groups, offset management, and error handling patterns.</p>
+
+                <div class="module-section demo-only">
+                    <div class="section-label">Demonstration</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="runDemo('day04')">Run Demo</button>
+                        <button class="btn" onclick="getConsumerStats()">View Stats</button>
+                    </div>
                 </div>
-                
+
+                <div class="module-section testing-only">
+                    <div class="section-label">Testing</div>
+                    <div class="input-group">
+                        <div class="input-row">
+                            <label>Topic</label>
+                            <input type="text" id="consumerTopic" placeholder="user-events" value="user-events">
+                        </div>
+                        <div class="input-row">
+                            <label>Group ID</label>
+                            <input type="text" id="groupId" placeholder="web-group" value="web-consumer-group">
+                        </div>
+                        <div class="input-row">
+                            <label>Max Messages</label>
+                            <input type="number" id="maxMessages" value="5" min="1" max="50">
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-warning" onclick="consumeRawMessages()">Consume Messages</button>
+                            <button class="btn" onclick="getConsumerStats()">Get Stats</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="result" id="day04Result"></div>
             </div>
-            
-            <!-- API Information -->
-            <div class="module">
-                <h2>🔗 API Endpoints</h2>
-                <p>Direct API access for advanced users and integration</p>
-                
-                <div class="button-group">
-                    <button class="btn btn-info" onclick="showApiInfo()">Show API Documentation</button>
-                    <button class="btn" onclick="checkHealth()">Health Check</button>
+        </div>
+
+        <!-- Day 05: Streams - Full Width -->
+        <div class="module" style="margin-top: 24px;">
+            <div class="module-header">
+                <div class="module-title-wrapper">
+                    <h3>Day 5: Kafka Streams Processing</h3>
+                    <span class="module-badge">Stream Processing</span>
                 </div>
-                
-                <div class="result" id="apiResult"></div>
+            </div>
+            <p class="module-desc">Real-time stream processing, aggregations, windowing, stateful operations, and stream joins.</p>
+
+            <div class="module-section demo-only">
+                <div class="section-label">Demonstration</div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="runDemo('day05')">Run Demo</button>
+                    <button class="btn" onclick="getStreamsStatus()">Get Status</button>
+                </div>
+            </div>
+
+            <div class="module-section testing-only">
+                <div class="section-label">Stream Controls</div>
+                <div class="streams-control">
+                    <div class="stream-item">
+                        <div class="stream-status">
+                            <span class="stream-indicator" id="userActivityIndicator"></span>
+                            <span>User Activity</span>
+                        </div>
+                        <div class="stream-controls">
+                            <button class="btn btn-success" onclick="startStream('user-activity')">Start</button>
+                            <button class="btn btn-danger" onclick="stopStream('user-activity')">Stop</button>
+                        </div>
+                    </div>
+
+                    <div class="stream-item">
+                        <div class="stream-status">
+                            <span class="stream-indicator" id="orderAnalyticsIndicator"></span>
+                            <span>Order Analytics</span>
+                        </div>
+                        <div class="stream-controls">
+                            <button class="btn btn-success" onclick="startStream('order-analytics')">Start</button>
+                            <button class="btn btn-danger" onclick="stopStream('order-analytics')">Stop</button>
+                        </div>
+                    </div>
+
+                    <div class="stream-item">
+                        <div class="stream-status">
+                            <span class="stream-indicator" id="fraudDetectionIndicator"></span>
+                            <span>Fraud Detection</span>
+                        </div>
+                        <div class="stream-controls">
+                            <button class="btn btn-success" onclick="startStream('fraud-detection')">Start</button>
+                            <button class="btn btn-danger" onclick="stopStream('fraud-detection')">Stop</button>
+                        </div>
+                    </div>
+
+                    <div class="stream-item">
+                        <div class="stream-status">
+                            <span class="stream-indicator" id="eventmartIndicator"></span>
+                            <span>EventMart</span>
+                        </div>
+                        <div class="stream-controls">
+                            <button class="btn btn-success" onclick="startStream('eventmart')">Start</button>
+                            <button class="btn btn-danger" onclick="stopStream('eventmart')">Stop</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result" id="day05Result"></div>
+        </div>
+
+        <!-- Remaining Days -->
+        <div class="modules-grid" style="margin-top: 24px;">
+            <!-- Day 06 -->
+            <div class="module">
+                <div class="module-header">
+                    <div class="module-title-wrapper">
+                        <h3>Day 6: Schema Management</h3>
+                        <span class="module-badge">Data Quality</span>
+                    </div>
+                </div>
+                <p class="module-desc">Avro schema design, Schema Registry integration, schema evolution, and compatibility management.</p>
+
+                <div class="module-section demo-only">
+                    <div class="section-label">Demonstration</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="runDemo('day06')">Run Demo</button>
+                        <button class="btn" onclick="listSchemas()">List Schemas</button>
+                    </div>
+                </div>
+
+                <div class="module-section testing-only">
+                    <div class="section-label">Testing</div>
+                    <div class="input-group">
+                        <div class="input-row">
+                            <label>User ID</label>
+                            <input type="text" id="avroUserId" placeholder="user-1" value="user-1">
+                        </div>
+                        <div class="input-row">
+                            <label>Name</label>
+                            <input type="text" id="avroUserName" placeholder="John Doe" value="John Doe">
+                        </div>
+                        <div class="input-row">
+                            <label>Email</label>
+                            <input type="text" id="avroUserEmail" placeholder="user@example.com" value="john@example.com">
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-success" onclick="produceAvroMessage()">Produce Avro</button>
+                            <button class="btn" onclick="consumeAvroMessages()">Consume Avro</button>
+                            <button class="btn" onclick="listSchemas()">List Schemas</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result" id="day06Result"></div>
+            </div>
+
+            <!-- Day 07 -->
+            <div class="module">
+                <div class="module-header">
+                    <div class="module-title-wrapper">
+                        <h3>Day 7: Kafka Connect</h3>
+                        <span class="module-badge">Integration</span>
+                    </div>
+                </div>
+                <p class="module-desc">Data integration with JDBC connectors, source/sink configurations, and external system integration.</p>
+
+                <div class="module-section demo-only">
+                    <div class="section-label">Demonstration</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="runDemo('day07')">Run Demo</button>
+                        <button class="btn" onclick="getConnectInfo()">Connect Info</button>
+                    </div>
+                </div>
+
+                <div class="module-section testing-only">
+                    <div class="section-label">Testing</div>
+                    <div class="input-group">
+                        <div class="input-row">
+                            <label>Connector Name</label>
+                            <input type="text" id="connectorName" placeholder="connector-name" value="">
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-success" onclick="createUserSourceConnector()">Create User Source</button>
+                            <button class="btn btn-success" onclick="createProductSourceConnector()">Create Product Source</button>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-warning" onclick="createOrderSinkConnector()">Create Order Sink</button>
+                            <button class="btn" onclick="getConnectorStatus()">Get Status</button>
+                            <button class="btn" onclick="listConnectors()">List All</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result" id="day07Result"></div>
+            </div>
+
+            <!-- Day 08 -->
+            <div class="module">
+                <div class="module-header">
+                    <div class="module-title-wrapper">
+                        <h3>Day 8: Production Ready</h3>
+                        <span class="module-badge">Advanced</span>
+                    </div>
+                </div>
+                <p class="module-desc">Security, monitoring, metrics, performance optimization, and production operations.</p>
+
+                <div class="module-section demo-only">
+                    <div class="section-label">Demonstration</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="runDemo('day08')">Run Demo</button>
+                        <button class="btn" onclick="getAdvancedStatus()">System Status</button>
+                    </div>
+                </div>
+
+                <div class="module-section testing-only">
+                    <div class="section-label">Testing</div>
+                    <div class="button-group">
+                        <button class="btn" onclick="getClusterMetrics()">Cluster Metrics</button>
+                        <button class="btn" onclick="getAdvancedConsumerLag()">Consumer Lag</button>
+                        <button class="btn" onclick="getSecurityConfig()">Security Config</button>
+                        <button class="btn" onclick="getProductionConfig()">Production Config</button>
+                    </div>
+                </div>
+
+                <div class="result" id="day08Result"></div>
+            </div>
+
+            <!-- EventMart -->
+            <div class="module">
+                <div class="module-header">
+                    <div class="module-title-wrapper">
+                        <h3>EventMart Capstone Project</h3>
+                        <span class="module-badge">Capstone</span>
+                    </div>
+                </div>
+                <p class="module-desc">Complete e-commerce event streaming platform demonstrating all Kafka concepts in production.</p>
+
+                <div class="module-section demo-only">
+                    <div class="section-label">Demonstration</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="runEventMartDemo()">Run Full Demo</button>
+                        <button class="btn" onclick="getEventMartStatus()">Platform Status</button>
+                    </div>
+                </div>
+
+                <div class="module-section testing-only">
+                    <div class="section-label">Testing</div>
+                    <div class="input-group">
+                        <div class="input-row">
+                            <label>User ID</label>
+                            <input type="text" id="emUserId" placeholder="user-1" value="user-1">
+                            <label>Name</label>
+                            <input type="text" id="emUserName" placeholder="John Doe" value="John Doe">
+                            <button class="btn btn-success" onclick="simulateUserRegistration()">Register User</button>
+                        </div>
+                        <div class="input-row">
+                            <label>Product ID</label>
+                            <input type="text" id="emProductId" placeholder="prod-1" value="prod-1">
+                            <label>Product Name</label>
+                            <input type="text" id="emProductName" placeholder="Product" value="Laptop">
+                            <button class="btn btn-success" onclick="simulateProductCreation()">Create Product</button>
+                        </div>
+                        <div class="input-row">
+                            <label>Order ID</label>
+                            <input type="text" id="emOrderId" placeholder="order-1" value="order-1">
+                            <label>Amount</label>
+                            <input type="number" id="emOrderAmount" placeholder="999.99" value="999.99" step="0.01">
+                            <button class="btn btn-warning" onclick="simulateOrderPlacement()">Place Order</button>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn" onclick="createEventMartTopics()">Create Topics</button>
+                            <button class="btn" onclick="getEventMartStatus()">Get Status</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result" id="eventmartResult"></div>
             </div>
         </div>
-        
+
         <div class="footer">
-            <p>🎭 <strong>EventMart Progressive Project</strong> - Advanced training scenarios available via API</p>
-            <p>Built with Spring Boot 2.7 + Apache Kafka 3.8 + Spring Kafka</p>
+            Apache Kafka Training Course | Spring Boot 3.3.4 | Kafka 3.8.0 | Java 21
         </div>
     </div>
 
     <script>
         const API_BASE = '/api/training';
-        
-        function showResult(elementId, message, isSuccess = true) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.className = `result ${isSuccess ? 'success' : 'error'}`;
-            element.style.display = 'block';
-            
-            // Auto-hide after 10 seconds
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 10000);
+        let currentMode = 'demo';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+
+            document.querySelectorAll('[id$="Desc"]').forEach(desc => desc.style.display = 'none');
+            document.getElementById(mode + 'Desc').style.display = 'block';
+
+            document.querySelectorAll('.demo-only, .testing-only').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.' + mode + '-only').forEach(el => el.style.display = 'block');
         }
-        
+
         function updateStatus(message) {
-            document.getElementById('status').textContent = message;
+            document.getElementById('statusText').textContent = message;
         }
-        
+
+        function showResult(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.innerHTML = message;
+            element.style.display = 'block';
+            setTimeout(() => element.style.display = 'none', 15000);
+        }
+
         async function apiCall(endpoint, method = 'GET', params = {}) {
             try {
-                updateStatus('🔄 Processing...');
-                
+                updateStatus('Processing...');
                 let url = `${API_BASE}${endpoint}`;
-                let options = { method };
-                
                 if (method === 'POST' && Object.keys(params).length > 0) {
-                    const formData = new URLSearchParams(params);
-                    url += '?' + formData.toString();
+                    url += '?' + new URLSearchParams(params).toString();
                 }
-                
-                const response = await fetch(url, options);
+                const response = await fetch(url, { method });
                 const data = await response.json();
-                
-                updateStatus('✅ Ready');
+                updateStatus('System Ready');
                 return data;
-                
             } catch (error) {
-                updateStatus('❌ Error');
+                updateStatus('Error');
                 throw error;
             }
         }
-        
+
         async function runDemo(day) {
             try {
                 const data = await apiCall(`/${day}/demo`, 'POST');
-                showResult(`${day}Result`, `✅ ${data.message}`, data.status === 'success');
+                showResult(`${day}Result`, data.message || 'Demo completed', data.status === 'success' ? 'success' : 'error');
             } catch (error) {
-                showResult(`${day}Result`, `❌ Error: ${error.message}`, false);
+                showResult(`${day}Result`, `Error: ${error.message}`, 'error');
             }
         }
-        
+
         async function listTopics() {
             try {
                 const data = await apiCall('/day01/topics');
-                const message = `📋 Found ${data.count} topics: ${data.topics.join(', ')}`;
-                showResult('day01Result', message);
+                showResult('day01Result', `Found ${data.count} topics: ${data.topics.join(', ')}`, 'info');
             } catch (error) {
-                showResult('day01Result', `❌ Error: ${error.message}`, false);
+                showResult('day01Result', `Error: ${error.message}`, 'error');
             }
         }
-        
+
         async function createTopic() {
             const name = document.getElementById('topicName').value;
             const partitions = document.getElementById('partitions').value;
-            
-            if (!name) {
-                showResult('day01Result', '❌ Please enter a topic name', false);
-                return;
-            }
-            
+            if (!name) return showResult('day01Result', 'Please enter topic name', 'error');
             try {
-                const data = await apiCall('/day01/create-topic', 'POST', {
-                    name: name,
-                    partitions: partitions
-                });
-                showResult('day01Result', `✅ ${data.message}`, data.status === 'success');
+                const data = await apiCall('/day01/create-topic', 'POST', { name, partitions });
+                showResult('day01Result', data.message, data.status === 'success' ? 'success' : 'error');
             } catch (error) {
-                showResult('day01Result', `❌ Error: ${error.message}`, false);
+                showResult('day01Result', `Error: ${error.message}`, 'error');
             }
         }
-        
+
+        async function getDataFlowConcepts() {
+            try {
+                const data = await apiCall('/day02/concepts');
+                showResult('day02Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day02Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getConsumerLag() {
+            const groupId = document.getElementById('day02GroupId').value || 'training-group';
+            try {
+                const data = await apiCall(`/day02/consumer-lag/${groupId}`);
+                showResult('day02Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day02Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getOffsets() {
+            const groupId = document.getElementById('day02GroupId').value || 'training-group';
+            try {
+                const data = await apiCall(`/day02/offsets/${groupId}`);
+                showResult('day02Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day02Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
         async function sendMessage() {
             const topic = document.getElementById('producerTopic').value;
             const key = document.getElementById('messageKey').value;
             const message = document.getElementById('messageValue').value;
-            
-            if (!topic || !key || !message) {
-                showResult('day03Result', '❌ Please fill in all fields', false);
-                return;
-            }
-            
+            if (!topic || !key || !message) return showResult('day03Result', 'Fill all fields', 'error');
             try {
-                const data = await apiCall('/day03/send-message', 'POST', {
-                    topic: topic,
-                    key: key,
-                    message: message
-                });
-                showResult('day03Result', `✅ ${data.message}`, data.status === 'success');
+                const data = await apiCall('/day03/send-message', 'POST', { topic, key, message });
+                showResult('day03Result', data.message, data.status === 'success' ? 'success' : 'error');
             } catch (error) {
-                showResult('day03Result', `❌ Error: ${error.message}`, false);
+                showResult('day03Result', `Error: ${error.message}`, 'error');
             }
         }
-        
+
         async function sendBatchMessages() {
             const topic = document.getElementById('producerTopic').value || 'user-events';
-            
             try {
-                const data = await apiCall('/day03/send-batch', 'POST', {
-                    topic: topic,
-                    count: 10
-                });
-                showResult('day03Result', `✅ ${data.message}`, data.status === 'success');
+                const data = await apiCall('/day03/send-batch', 'POST', { topic, count: 10 });
+                showResult('day03Result', data.message, data.status === 'success' ? 'success' : 'error');
             } catch (error) {
-                showResult('day03Result', `❌ Error: ${error.message}`, false);
+                showResult('day03Result', `Error: ${error.message}`, 'error');
             }
         }
-        
+
         async function getConsumerStats() {
             try {
                 const data = await apiCall('/day04/stats');
-                showResult('day04Result', `📊 Processed Messages: ${data.processedMessages}`);
+                showResult('day04Result', `Processed Messages: ${data.processedMessages}`, 'info');
             } catch (error) {
-                showResult('day04Result', `❌ Error: ${error.message}`, false);
+                showResult('day04Result', `Error: ${error.message}`, 'error');
             }
         }
-        
+
         async function consumeRawMessages() {
             const topic = document.getElementById('consumerTopic').value;
             const groupId = document.getElementById('groupId').value;
             const maxMessages = document.getElementById('maxMessages').value;
-            
             try {
-                const data = await apiCall('/day04/consume-raw', 'POST', {
-                    topic: topic,
-                    groupId: groupId,
-                    maxMessages: maxMessages
-                });
-                showResult('day04Result', `✅ ${data.message}`, data.status === 'success');
+                const data = await apiCall('/day04/consume-raw', 'POST', { topic, groupId, maxMessages });
+                showResult('day04Result', data.message, data.status === 'success' ? 'success' : 'error');
             } catch (error) {
-                showResult('day04Result', `❌ Error: ${error.message}`, false);
+                showResult('day04Result', `Error: ${error.message}`, 'error');
             }
         }
-        
-        async function checkHealth() {
+
+        async function getStreamsStatus() {
             try {
-                const data = await apiCall('/health');
-                showResult('apiResult', `✅ Service: ${data.service} v${data.version} - Status: ${data.status}`);
+                const data = await apiCall('/day05/streams/status');
+                showResult('day05Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+                updateStreamIndicators(data);
             } catch (error) {
-                showResult('apiResult', `❌ Health check failed: ${error.message}`, false);
+                showResult('day05Result', `Error: ${error.message}`, 'error');
             }
         }
-        
-        function showApiInfo() {
-            const apiInfo = `
-🔗 Available API Endpoints:
 
-Foundation (Day 01):
-• GET  /api/training/day01/topics - List all topics
-• POST /api/training/day01/create-topic?name=X&partitions=Y - Create topic
-• POST /api/training/day01/demo - Run foundation demo
-
-Producers (Day 03):
-• POST /api/training/day03/send-message?topic=X&key=Y&message=Z - Send message
-• POST /api/training/day03/send-batch?topic=X&count=Y - Send batch
-• POST /api/training/day03/demo - Run producer demo
-
-Consumers (Day 04):
-• GET  /api/training/day04/stats - Get consumer statistics
-• POST /api/training/day04/consume-raw?topic=X&groupId=Y&maxMessages=Z - Raw consume
-• POST /api/training/day04/demo - Run consumer demo
-
-General:
-• GET  /api/training/health - Health check
-• GET  /api/training/modules - List all modules
-            `;
-            showResult('apiResult', apiInfo);
+        async function startStream(streamType) {
+            try {
+                const data = await apiCall(`/day05/streams/${streamType}/start`, 'POST');
+                showResult('day05Result', data.message, data.status === 'success' ? 'success' : 'error');
+                setTimeout(getStreamsStatus, 1000);
+            } catch (error) {
+                showResult('day05Result', `Error: ${error.message}`, 'error');
+            }
         }
-        
-        // Initialize page
+
+        async function stopStream(streamType) {
+            try {
+                const data = await apiCall(`/day05/streams/${streamType}/stop`, 'POST');
+                showResult('day05Result', data.message, data.status === 'success' ? 'success' : 'error');
+                setTimeout(getStreamsStatus, 1000);
+            } catch (error) {
+                showResult('day05Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        function updateStreamIndicators(data) {
+            const indicators = {
+                'user-activity': 'userActivityIndicator',
+                'order-analytics': 'orderAnalyticsIndicator',
+                'fraud-detection': 'fraudDetectionIndicator',
+                'eventmart': 'eventmartIndicator'
+            };
+            Object.keys(indicators).forEach(stream => {
+                const indicator = document.getElementById(indicators[stream]);
+                if (indicator) {
+                    const isRunning = data && data[stream] && data[stream].running;
+                    indicator.className = `stream-indicator ${isRunning ? 'active' : ''}`;
+                }
+            });
+        }
+
+        async function listSchemas() {
+            try {
+                const data = await apiCall('/day06/schemas/list');
+                showResult('day06Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day06Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function produceAvroMessage() {
+            const userId = document.getElementById('avroUserId').value;
+            const name = document.getElementById('avroUserName').value;
+            const email = document.getElementById('avroUserEmail').value;
+            try {
+                const data = await apiCall('/day06/avro/produce', 'POST', { userId, name, email });
+                showResult('day06Result', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('day06Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function consumeAvroMessages() {
+            try {
+                const data = await apiCall('/day06/avro/consume', 'POST');
+                showResult('day06Result', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('day06Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getConnectInfo() {
+            try {
+                const data = await apiCall('/day07/connect/info');
+                showResult('day07Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day07Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function listConnectors() {
+            try {
+                const data = await apiCall('/day07/connectors/list');
+                showResult('day07Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day07Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function createUserSourceConnector() {
+            try {
+                const data = await apiCall('/day07/connectors/create/user-activity-source', 'POST');
+                showResult('day07Result', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('day07Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function createProductSourceConnector() {
+            try {
+                const data = await apiCall('/day07/connectors/create/product-events-source', 'POST');
+                showResult('day07Result', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('day07Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function createOrderSinkConnector() {
+            try {
+                const data = await apiCall('/day07/connectors/create/order-events-sink', 'POST');
+                showResult('day07Result', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('day07Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getConnectorStatus() {
+            const name = document.getElementById('connectorName').value;
+            if (!name) return showResult('day07Result', 'Enter connector name', 'error');
+            try {
+                const data = await apiCall(`/day07/connectors/${name}/status`);
+                showResult('day07Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day07Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getAdvancedStatus() {
+            try {
+                const data = await apiCall('/day08/status');
+                showResult('day08Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day08Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getClusterMetrics() {
+            try {
+                const data = await apiCall('/day08/metrics/cluster');
+                showResult('day08Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day08Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getAdvancedConsumerLag() {
+            try {
+                const data = await apiCall('/day08/metrics/consumer-lag');
+                showResult('day08Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day08Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getSecurityConfig() {
+            try {
+                const data = await apiCall('/day08/config/security');
+                showResult('day08Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day08Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getProductionConfig() {
+            try {
+                const data = await apiCall('/day08/config/production');
+                showResult('day08Result', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('day08Result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runEventMartDemo() {
+            try {
+                const data = await apiCall('/eventmart/demo', 'POST');
+                showResult('eventmartResult', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('eventmartResult', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getEventMartStatus() {
+            try {
+                const data = await apiCall('/eventmart/status');
+                showResult('eventmartResult', `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                showResult('eventmartResult', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function createEventMartTopics() {
+            try {
+                const data = await apiCall('/eventmart/topics', 'POST');
+                showResult('eventmartResult', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('eventmartResult', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateUserRegistration() {
+            const userId = document.getElementById('emUserId').value;
+            const name = document.getElementById('emUserName').value;
+            const email = `${userId}@example.com`;
+            try {
+                const data = await apiCall('/eventmart/simulate/user', 'POST', { userId, name, email });
+                showResult('eventmartResult', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('eventmartResult', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateProductCreation() {
+            const productId = document.getElementById('emProductId').value;
+            const name = document.getElementById('emProductName').value;
+            try {
+                const data = await apiCall('/eventmart/simulate/product', 'POST', { productId, name, category: 'Electronics', price: 999.99 });
+                showResult('eventmartResult', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('eventmartResult', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateOrderPlacement() {
+            const orderId = document.getElementById('emOrderId').value;
+            const userId = document.getElementById('emUserId').value;
+            const amount = document.getElementById('emOrderAmount').value;
+            try {
+                const data = await apiCall('/eventmart/simulate/order', 'POST', { orderId, userId, amount });
+                showResult('eventmartResult', data.message, data.status === 'success' ? 'success' : 'error');
+            } catch (error) {
+                showResult('eventmartResult', `Error: ${error.message}`, 'error');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            checkHealth();
+            setMode('demo');
+            apiCall('/health').catch(() => updateStatus('System Error'));
+            setTimeout(getStreamsStatus, 1000);
         });
     </script>
 </body>
