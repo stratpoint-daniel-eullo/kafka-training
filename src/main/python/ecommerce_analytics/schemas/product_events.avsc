@@ -1,0 +1,149 @@
+{
+  "type": "record",
+  "name": "ProductEvent",
+  "namespace": "com.training.kafka.ecommerce.events",
+  "doc": "Product and inventory events for e-commerce platform (Day 5: Avro Schema)",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for this event (UUID)"
+    },
+    {
+      "name": "event_type",
+      "type": {
+        "type": "enum",
+        "name": "ProductEventType",
+        "symbols": [
+          "PRODUCT_CREATED",
+          "PRODUCT_UPDATED",
+          "PRODUCT_DELETED",
+          "INVENTORY_INCREASED",
+          "INVENTORY_DECREASED",
+          "PRICE_CHANGED"
+        ]
+      },
+      "doc": "Type of product event"
+    },
+    {
+      "name": "product_id",
+      "type": "string",
+      "doc": "Unique identifier for the product"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp in milliseconds since epoch"
+    },
+    {
+      "name": "product_name",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Product name"
+    },
+    {
+      "name": "category",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Product category"
+    },
+    {
+      "name": "price",
+      "type": [
+        "null",
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision": 10,
+          "scale": 2
+        }
+      ],
+      "default": null,
+      "doc": "Current product price"
+    },
+    {
+      "name": "previous_price",
+      "type": [
+        "null",
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision": 10,
+          "scale": 2
+        }
+      ],
+      "default": null,
+      "doc": "Previous price (for PRICE_CHANGED events)"
+    },
+    {
+      "name": "currency",
+      "type": {
+        "type": "string",
+        "default": "USD"
+      },
+      "default": "USD",
+      "doc": "Currency code (ISO 4217)"
+    },
+    {
+      "name": "stock_quantity",
+      "type": ["null", "int"],
+      "default": null,
+      "doc": "Current stock quantity"
+    },
+    {
+      "name": "quantity_change",
+      "type": ["null", "int"],
+      "default": null,
+      "doc": "Change in stock quantity (for inventory events)"
+    },
+    {
+      "name": "warehouse_location",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Warehouse location code"
+    },
+    {
+      "name": "product_attributes",
+      "type": [
+        "null",
+        {
+          "type": "map",
+          "values": "string"
+        }
+      ],
+      "default": null,
+      "doc": "Additional product attributes (color, size, weight, etc.)"
+    },
+    {
+      "name": "supplier_id",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Supplier identifier"
+    },
+    {
+      "name": "is_active",
+      "type": {
+        "type": "boolean",
+        "default": true
+      },
+      "default": true,
+      "doc": "Whether product is currently active for sale"
+    },
+    {
+      "name": "source_system",
+      "type": {
+        "type": "string",
+        "default": "ecommerce-platform"
+      },
+      "default": "ecommerce-platform",
+      "doc": "System that generated this event"
+    },
+    {
+      "name": "schema_version",
+      "type": "string",
+      "default": "1.0.0",
+      "doc": "Schema version for compatibility tracking"
+    }
+  ]
+}

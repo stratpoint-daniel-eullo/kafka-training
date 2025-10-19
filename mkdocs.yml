@@ -127,7 +127,10 @@ nav:
       - Day 6 Exercises: exercises/day06-exercises.md
       - Day 7 Exercises: exercises/day07-exercises.md
       - Day 8 Exercises: exercises/day08-exercises.md
-      - Capstone Presentation Guide: exercises/capstone-guide.md
+      - Capstone Projects:
+          - Python Capstone: exercises/capstone-guide-python.md
+          - Java Capstone: exercises/capstone-guide-java.md
+          - Capstone Extensions: exercises/capstone-extensions.md
   - Container Development:
       - containers/index.md
       - Why Containers for Data Engineers: containers/why-containers.md

@@ -1,0 +1,426 @@
+{
+  "dashboard": {
+    "title": "E-Commerce Analytics Platform - Kafka Monitoring",
+    "description": "Comprehensive monitoring dashboard for the E-Commerce Analytics Platform (Days 1-8)",
+    "tags": ["kafka", "ecommerce", "python", "streaming"],
+    "timezone": "browser",
+    "editable": true,
+    "graphTooltip": 1,
+    "time": {
+      "from": "now-30m",
+      "to": "now"
+    },
+    "refresh": "10s",
+    "schemaVersion": 38,
+    "version": 1,
+    "panels": [
+      {
+        "id": 1,
+        "title": "Producer Message Rate (Day 3)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(ecommerce_messages_produced_total[1m])",
+            "legendFormat": "{{topic}} - {{producer_type}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Messages/sec"},
+          {"format": "short", "show": false}
+        ],
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 2,
+        "title": "Consumer Message Rate (Day 4)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(ecommerce_messages_consumed_total[1m])",
+            "legendFormat": "{{topic}} - {{consumer_type}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Messages/sec"},
+          {"format": "short", "show": false}
+        ],
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 3,
+        "title": "Consumer Lag (Day 4)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "ecommerce_consumer_lag",
+            "legendFormat": "{{topic}} - Partition {{partition}}",
+            "refId": "A"
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [1000], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "name": "High Consumer Lag Alert"
+        },
+        "yaxes": [
+          {"format": "short", "label": "Messages Behind"},
+          {"format": "short", "show": false}
+        ],
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 4,
+        "title": "Processing Time (Day 4)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(ecommerce_processing_time_seconds_bucket[5m]))",
+            "legendFormat": "p95 - {{consumer_type}}",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(ecommerce_processing_time_seconds_bucket[5m]))",
+            "legendFormat": "p50 - {{consumer_type}}",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Processing Time"},
+          {"format": "short", "show": false}
+        ],
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 5,
+        "title": "Total Messages Produced (Day 3)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 16},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum(ecommerce_messages_produced_total)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 6,
+        "title": "Total Messages Consumed (Day 4)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 16},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum(ecommerce_messages_consumed_total)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 7,
+        "title": "Total Errors (Day 8)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 16},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum(ecommerce_errors_total)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "textMode": "value_and_name"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 10, "color": "yellow"},
+                {"value": 100, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "DLQ Messages (Day 8)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 16},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum(ecommerce_dlq_messages_total)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "textMode": "value_and_name"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 5, "color": "yellow"},
+                {"value": 50, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Error Rate (Day 8)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(ecommerce_errors_total[5m])",
+            "legendFormat": "{{error_type}}",
+            "refId": "A"
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [10], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "name": "High Error Rate Alert"
+        },
+        "yaxes": [
+          {"format": "short", "label": "Errors/sec"},
+          {"format": "short", "show": false}
+        ],
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 10,
+        "title": "DLQ Message Rate (Day 8)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(ecommerce_dlq_messages_total[5m])",
+            "legendFormat": "{{source_topic}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "DLQ Messages/sec"},
+          {"format": "short", "show": false}
+        ],
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 11,
+        "title": "Stream Processing Rate (Day 6)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(ecommerce_stream_events_processed_total[1m])",
+            "legendFormat": "{{stream_app}} - {{event_type}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Events/sec"},
+          {"format": "short", "show": false}
+        ],
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 12,
+        "title": "Stream State Size (Day 6: Faust RocksDB)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "ecommerce_stream_state_size_bytes",
+            "legendFormat": "{{stream_app}} - {{table_name}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "bytes", "label": "State Size"},
+          {"format": "short", "show": false}
+        ],
+        "legend": {"show": true, "alignAsTable": true, "avg": true, "current": true, "max": true}
+      },
+      {
+        "id": 13,
+        "title": "Schema Registry Schemas (Day 6)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 0, "y": 36},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "ecommerce_schema_registry_schemas_total",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "none",
+          "colorMode": "value",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 14,
+        "title": "Kafka Connect Tasks (Day 7)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 8, "y": 36},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "ecommerce_kafka_connect_tasks_running",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "none",
+          "colorMode": "value",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 15,
+        "title": "Active Connections",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 16, "y": 36},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "ecommerce_active_connections",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "none",
+          "colorMode": "value",
+          "textMode": "value_and_name"
+        }
+      },
+      {
+        "id": 16,
+        "title": "Topic Partition Distribution",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 40},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "count by (topic) (ecommerce_topic_partition_offset)",
+            "legendFormat": "{{topic}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "legend": {"displayMode": "list", "placement": "right"}
+        }
+      },
+      {
+        "id": 17,
+        "title": "Consumer Group Lag by Topic",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 16, "x": 8, "y": 40},
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum by (topic, consumer_group) (ecommerce_consumer_lag)",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showHeader": true,
+          "sortBy": [{"displayName": "Value", "desc": true}]
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {"align": "auto", "displayMode": "auto"},
+            "thresholds": {
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 500, "color": "yellow"},
+                {"value": 1000, "color": "red"}
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Value"},
+              "properties": [
+                {"id": "custom.displayMode", "value": "color-background"},
+                {"id": "displayName", "value": "Lag (messages)"}
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    }
+  },
+  "overwrite": true,
+  "inputs": [],
+  "folderId": null,
+  "folderUid": null
+}

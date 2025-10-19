@@ -1,0 +1,199 @@
+{
+  "type": "record",
+  "name": "PaymentEvent",
+  "namespace": "com.training.kafka.ecommerce.events",
+  "doc": "Payment transaction events for e-commerce platform (Day 5: Avro Schema)",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for this event (UUID)"
+    },
+    {
+      "name": "event_type",
+      "type": {
+        "type": "enum",
+        "name": "PaymentEventType",
+        "symbols": [
+          "PAYMENT_INITIATED",
+          "PAYMENT_AUTHORIZED",
+          "PAYMENT_COMPLETED",
+          "PAYMENT_FAILED",
+          "PAYMENT_REFUNDED",
+          "PAYMENT_DECLINED"
+        ]
+      },
+      "doc": "Type of payment event"
+    },
+    {
+      "name": "payment_id",
+      "type": "string",
+      "doc": "Unique identifier for the payment transaction"
+    },
+    {
+      "name": "order_id",
+      "type": "string",
+      "doc": "Associated order identifier"
+    },
+    {
+      "name": "user_id",
+      "type": "string",
+      "doc": "User making the payment"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp in milliseconds since epoch"
+    },
+    {
+      "name": "amount",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 10,
+        "scale": 2
+      },
+      "doc": "Payment amount with 2 decimal places"
+    },
+    {
+      "name": "currency",
+      "type": {
+        "type": "string",
+        "default": "USD"
+      },
+      "default": "USD",
+      "doc": "Currency code (ISO 4217)"
+    },
+    {
+      "name": "payment_method",
+      "type": {
+        "type": "enum",
+        "name": "PaymentMethod",
+        "symbols": [
+          "CREDIT_CARD",
+          "DEBIT_CARD",
+          "PAYPAL",
+          "BANK_TRANSFER",
+          "CRYPTO",
+          "GIFT_CARD"
+        ]
+      },
+      "doc": "Payment method used"
+    },
+    {
+      "name": "card_last_four",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Last 4 digits of card (for card payments, PCI compliance)"
+    },
+    {
+      "name": "card_brand",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Card brand (Visa, Mastercard, Amex, etc.)"
+    },
+    {
+      "name": "payment_gateway",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Payment gateway used (Stripe, PayPal, etc.)"
+    },
+    {
+      "name": "transaction_id",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "External transaction ID from payment gateway"
+    },
+    {
+      "name": "payment_status",
+      "type": {
+        "type": "enum",
+        "name": "PaymentStatus",
+        "symbols": [
+          "PENDING",
+          "AUTHORIZED",
+          "COMPLETED",
+          "FAILED",
+          "REFUNDED",
+          "DECLINED",
+          "CANCELLED"
+        ]
+      },
+      "doc": "Current payment status"
+    },
+    {
+      "name": "failure_reason",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Reason for payment failure (if applicable)"
+    },
+    {
+      "name": "fraud_score",
+      "type": ["null", "double"],
+      "default": null,
+      "doc": "Fraud detection score (0.0 to 1.0, higher = more suspicious)"
+    },
+    {
+      "name": "billing_address",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "BillingAddress",
+          "fields": [
+            {
+              "name": "street",
+              "type": "string"
+            },
+            {
+              "name": "city",
+              "type": "string"
+            },
+            {
+              "name": "state",
+              "type": "string"
+            },
+            {
+              "name": "postal_code",
+              "type": "string"
+            },
+            {
+              "name": "country",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "default": null,
+      "doc": "Billing address for the payment"
+    },
+    {
+      "name": "ip_address",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "IP address of the payment request (for fraud detection)"
+    },
+    {
+      "name": "device_fingerprint",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Device fingerprint for fraud detection"
+    },
+    {
+      "name": "source_system",
+      "type": {
+        "type": "string",
+        "default": "ecommerce-platform"
+      },
+      "default": "ecommerce-platform",
+      "doc": "System that generated this event"
+    },
+    {
+      "name": "schema_version",
+      "type": "string",
+      "default": "1.0.0",
+      "doc": "Schema version for compatibility tracking"
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "type": "record",
+  "name": "OrderEvent",
+  "namespace": "com.training.kafka.ecommerce.events",
+  "doc": "Order lifecycle events for e-commerce platform (Day 5: Avro Schema)",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for this event (UUID)"
+    },
+    {
+      "name": "event_type",
+      "type": {
+        "type": "enum",
+        "name": "OrderEventType",
+        "symbols": [
+          "ORDER_PLACED",
+          "ORDER_CONFIRMED",
+          "ORDER_SHIPPED",
+          "ORDER_DELIVERED",
+          "ORDER_CANCELLED",
+          "ORDER_RETURNED"
+        ]
+      },
+      "doc": "Type of order event"
+    },
+    {
+      "name": "order_id",
+      "type": "string",
+      "doc": "Unique identifier for the order"
+    },
+    {
+      "name": "user_id",
+      "type": "string",
+      "doc": "User who placed the order"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp in milliseconds since epoch"
+    },
+    {
+      "name": "total_amount",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 10,
+        "scale": 2
+      },
+      "doc": "Total order amount with 2 decimal places"
+    },
+    {
+      "name": "currency",
+      "type": {
+        "type": "string",
+        "default": "USD"
+      },
+      "default": "USD",
+      "doc": "Currency code (ISO 4217)"
+    },
+    {
+      "name": "items",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "OrderItem",
+          "fields": [
+            {
+              "name": "product_id",
+              "type": "string",
+              "doc": "Product identifier"
+            },
+            {
+              "name": "product_name",
+              "type": "string",
+              "doc": "Product name at time of order"
+            },
+            {
+              "name": "quantity",
+              "type": "int",
+              "doc": "Quantity ordered"
+            },
+            {
+              "name": "unit_price",
+              "type": {
+                "type": "bytes",
+                "logicalType": "decimal",
+                "precision": 10,
+                "scale": 2
+              },
+              "doc": "Price per unit"
+            }
+          ]
+        }
+      },
+      "doc": "List of items in the order"
+    },
+    {
+      "name": "shipping_address",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Address",
+          "fields": [
+            {
+              "name": "street",
+              "type": "string"
+            },
+            {
+              "name": "city",
+              "type": "string"
+            },
+            {
+              "name": "state",
+              "type": "string"
+            },
+            {
+              "name": "postal_code",
+              "type": "string"
+            },
+            {
+              "name": "country",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "default": null,
+      "doc": "Shipping address for the order"
+    },
+    {
+      "name": "payment_method",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Payment method used (credit_card, paypal, etc.)"
+    },
+    {
+      "name": "order_status",
+      "type": {
+        "type": "enum",
+        "name": "OrderStatus",
+        "symbols": [
+          "PENDING",
+          "CONFIRMED",
+          "PROCESSING",
+          "SHIPPED",
+          "DELIVERED",
+          "CANCELLED",
+          "RETURNED"
+        ]
+      },
+      "doc": "Current order status"
+    },
+    {
+      "name": "source_system",
+      "type": {
+        "type": "string",
+        "default": "ecommerce-platform"
+      },
+      "default": "ecommerce-platform",
+      "doc": "System that generated this event"
+    },
+    {
+      "name": "schema_version",
+      "type": "string",
+      "default": "1.0.0",
+      "doc": "Schema version for compatibility tracking"
+    }
+  ]
+}

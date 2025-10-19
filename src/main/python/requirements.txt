@@ -1,0 +1,155 @@
+# E-Commerce Analytics Platform - Python Dependencies
+# Apache Kafka Training - Days 1-8 with Capstone Project
+
+# ============================================================================
+# Core Kafka Client Libraries (Days 1-8)
+# ============================================================================
+
+# confluent-kafka: Production-grade Kafka client with Avro support
+# Used for: Producers (Day 3), Consumers (Day 4), Schema Registry (Day 6)
+confluent-kafka[avro]==2.6.1
+
+# kafka-python: Alternative client used for admin operations
+# Used for: Topic management (Days 1-2), cluster inspection
+kafka-python==2.0.2
+
+# ============================================================================
+# Stream Processing (Day 6)
+# ============================================================================
+
+# Faust: Python stream processing library
+# Alternative to Kafka Streams for Python developers
+faust-streaming==0.11.3
+
+# RocksDB: State storage for Faust applications
+python-rocksdb==0.8.3
+
+# ============================================================================
+# Schema Management (Day 6)
+# ============================================================================
+
+# Avro: Schema serialization and evolution
+avro-python3==1.11.3
+
+# fastavro: Fast Avro implementation
+fastavro==1.9.7
+
+# ============================================================================
+# Kafka Connect (Day 7)
+# ============================================================================
+
+# requests: HTTP client for Kafka Connect REST API
+requests==2.32.3
+
+# ============================================================================
+# Monitoring & Observability (Day 8)
+# ============================================================================
+
+# prometheus-client: Prometheus metrics integration
+prometheus-client==0.21.0
+
+# ============================================================================
+# Data Generation & Utilities
+# ============================================================================
+
+# Faker: Generate realistic sample data for demos
+Faker==30.8.2
+
+# ============================================================================
+# Configuration & Environment
+# ============================================================================
+
+# python-dotenv: Load environment variables from .env files
+python-dotenv==1.0.1
+
+# pydantic: Data validation and settings management
+pydantic==2.10.3
+
+# pydantic-settings: Settings management with Pydantic v2
+pydantic-settings==2.6.1
+
+# ============================================================================
+# Database Connectivity (Analytics Storage)
+# ============================================================================
+
+# psycopg2-binary: PostgreSQL adapter
+# Used for: Analytics database, Kafka Connect sink
+psycopg2-binary==2.9.10
+
+# SQLAlchemy: SQL toolkit and ORM
+sqlalchemy==2.0.36
+
+# ============================================================================
+# CLI & Logging
+# ============================================================================
+
+# click: Command-line interface creation
+click==8.1.7
+
+# coloredlogs: Colored terminal output for logging
+coloredlogs==15.0.1
+
+# ============================================================================
+# Testing & Development
+# ============================================================================
+
+# pytest: Testing framework
+pytest==8.3.4
+
+# pytest-asyncio: Async test support for Faust
+pytest-asyncio==0.24.0
+
+# pytest-cov: Code coverage
+pytest-cov==6.0.0
+
+# pytest-mock: Mocking support
+pytest-mock==3.14.0
+
+# ============================================================================
+# Code Quality
+# ============================================================================
+
+# black: Code formatter
+black==24.10.0
+
+# flake8: Linting
+flake8==7.1.1
+
+# mypy: Static type checking
+mypy==1.13.0
+
+# isort: Import sorting
+isort==5.13.2
+
+# ============================================================================
+# Documentation
+# ============================================================================
+
+# mkdocs: Documentation generator
+mkdocs==1.6.1
+
+# mkdocs-material: Material theme for MkDocs
+mkdocs-material==9.5.48
+
+# ============================================================================
+# Additional Dependencies for Production
+# ============================================================================
+
+# uvloop: Fast event loop for asyncio (used by Faust)
+uvloop==0.21.0; sys_platform != 'win32'
+
+# aiohttp: Async HTTP client/server
+aiohttp==3.11.10
+
+# aiokafka: Async Kafka client (alternative)
+aiokafka==0.11.0
+
+# ============================================================================
+# Version Compatibility Notes
+# ============================================================================
+# - Python 3.9+ required
+# - Kafka broker 3.8.0 compatible
+# - All versions pinned for reproducibility
+# - Use 'pip install -r requirements.txt' to install
+# - For development: 'pip install -r requirements-dev.txt' (if separate file)
+# ============================================================================

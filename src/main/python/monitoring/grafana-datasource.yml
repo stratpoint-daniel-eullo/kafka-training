@@ -1,0 +1,28 @@
+# ============================================================================
+# E-Commerce Analytics Platform - Grafana Datasource Configuration
+# Auto-provisions Prometheus as a datasource
+# ============================================================================
+
+apiVersion: 1
+
+# List of datasources to insert/update depending on what's
+# available in the database
+datasources:
+  # Prometheus datasource for Kafka and application metrics
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
+
+      # Exemplars configuration
+      exemplarTraceIdDestinations:
+        - name: traceID
+          datasourceUid: tempo
+
+    version: 1

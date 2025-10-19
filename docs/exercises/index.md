@@ -48,20 +48,44 @@ Each day's exercises are organized into two sections:
 
 Choose exercises based on your learning goals and team requirements.
 
-## Capstone Presentation Goal
+## Capstone Project Tracks
 
-At the end of the 8-day training, you'll present your work demonstrating mastery of:
+At the end of the 8-day training, you'll present a **capstone project** demonstrating Kafka mastery.
 
-### Technical Skills
+### Choose Your Capstone Track
 
-- Apache Kafka architecture and operations
-- Producer and consumer implementation
-- Stream processing with Kafka Streams
-- Schema management with Avro
-- Data integration with Kafka Connect
-- Container deployment and monitoring
+### Python Data Engineering Track
 
-### Presentation Components
+**Project:** Real-Time E-Commerce Analytics Platform
+
+**Tech Stack:** Python, Faust, Avro, PostgreSQL, Docker
+
+**Best For:** Data engineers, platform engineers, Python developers
+
+**Starter Code:** `src/main/python/ecommerce_analytics/`
+
+**Guide:** [Python Capstone Guide](capstone-guide-python.md)
+
+### Java Spring Boot Track
+
+**Project:** EventMart E-Commerce Microservices
+
+**Tech Stack:** Java, Spring Boot, Kafka Streams, Avro, Docker
+
+**Best For:** Backend developers, microservices architects, Java developers
+
+**Starter Code:** `src/main/java/com/training/kafka/eventmart/`
+
+**Guide:** [Java Capstone Guide](capstone-guide-java.md)
+
+### Optional Extensions (Both Tracks)
+
+- Add Apache Airflow for workflow orchestration (+10%)
+- Add Apache Flink for advanced stream processing (+10%)
+
+**Guide:** [Capstone Extensions Guide](capstone-extensions.md)
+
+### Capstone Components (25 Minutes Total)
 
 1. **Architecture Overview** (5 min)
     - System design and component interaction
@@ -76,7 +100,7 @@ At the end of the 8-day training, you'll present your work demonstrating mastery
 
 3. **Technical Deep Dive** (5 min)
     - Code walkthrough of key components
-    - Kafka patterns implemented
+    - Kafka patterns implemented (Days 1-8)
     - Challenges overcome
     - Performance considerations
 
@@ -84,6 +108,21 @@ At the end of the 8-day training, you'll present your work demonstrating mastery
     - Answer questions about implementation
     - Discuss design decisions
     - Explain troubleshooting approaches
+
+### What You'll Demonstrate
+
+Both tracks cover ALL Days 1-8 concepts:
+
+| Day | Concept | Python Track | Java Track |
+|-----|---------|--------------|------------|
+| **Day 1** | Kafka Foundation | AdminClient, topic creation | Spring Boot admin, EventMart topics |
+| **Day 2** | Data Flow | Complete pipeline | Order processing flow |
+| **Day 3** | Producers | confluent-kafka, idempotence | KafkaTemplate, Spring producers |
+| **Day 4** | Consumers | Manual commits, DLQ | @KafkaListener, consumer groups |
+| **Day 5** | Schema Registry | Avro serialization | Avro with Spring Kafka |
+| **Day 6** | Stream Processing | Faust aggregations | Kafka Streams API |
+| **Day 7** | Kafka Connect | REST API client | JDBC Sink integration |
+| **Day 8** | Security & Advanced | SASL_SSL, Prometheus | Spring Security, actuator metrics |
 
 ## Exercise Structure by Day
 
@@ -284,16 +323,44 @@ Track your completion:
 
 ## Next Steps
 
-**Option A: Start Data Engineer Track**
+### Start Your Learning Journey
 
-Begin with [Day 1 Exercises](day01-exercises.md) - recommended for platform-agnostic Kafka skills
+### Step 1: Begin with Day 1 Exercises
 
-**Option B: Start Java Developer Track**
+Start with [Day 1 Exercises](day01-exercises.md) - covers Kafka fundamentals
 
-Begin with [Day 1 Exercises](day01-exercises.md) - focus on Spring Boot integration exercises
+Complete all 8 days of exercises before starting your capstone project.
 
-**Option C: Build EventMart** (Recommended for Capstone)
+### Step 2: Choose Your Capstone Track
 
-Follow the [EventMart Project Guide](../training/) to build your presentation project
+After completing Days 1-8, select your capstone:
 
-**Ready to begin?** Choose your path and start learning!
+- **Python Developers:** [Python Capstone Guide](capstone-guide-python.md)
+  - Real-Time Analytics Platform
+  - Starter code: `src/main/python/ecommerce_analytics/`
+
+- **Java Developers:** [Java Capstone Guide](capstone-guide-java.md)
+  - EventMart E-Commerce Microservices
+  - Starter code: `src/main/java/com/training/kafka/eventmart/`
+
+### Step 3: Add Optional Extensions (Advanced)
+
+Want to go beyond? Add enterprise features:
+
+- **Apache Airflow:** Workflow orchestration and scheduling
+- **Apache Flink:** Advanced stream processing and CEP
+- **Guide:** [Capstone Extensions](capstone-extensions.md)
+
+### Recommended Learning Path
+
+```
+Week 1: Days 1-4 (Foundation)
+  ↓
+Week 2: Days 5-8 (Advanced Topics)
+  ↓
+Week 3: Build Capstone (Choose Python or Java)
+  ↓
+Week 4: Add Extensions (Optional) & Prepare Presentation
+```
+
+**Ready to begin?** Start with [Day 1 Exercises](day01-exercises.md) and build your Kafka expertise!

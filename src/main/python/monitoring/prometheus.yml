@@ -1,0 +1,293 @@
+# ============================================================================
+# E-Commerce Analytics Platform - Prometheus Configuration
+# Day 8: Monitoring and Observability
+# ============================================================================
+
+global:
+  # How frequently to scrape targets
+  scrape_interval: 15s
+
+  # How long until a scrape request times out
+  scrape_timeout: 10s
+
+  # How frequently to evaluate rules
+  evaluation_interval: 15s
+
+  # External labels to add to any time series or alerts
+  external_labels:
+    cluster: 'ecommerce-analytics'
+    environment: 'development'
+
+# ============================================================================
+# Alertmanager Configuration
+# ============================================================================
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # Uncomment when Alertmanager is set up
+          # - targets: ['alertmanager:9093']
+
+# ============================================================================
+# Rule Files
+# ============================================================================
+rule_files:
+  # - "alerts/*.yml"
+  # - "rules/*.yml"
+
+# ============================================================================
+# Scrape Configurations
+# ============================================================================
+
+scrape_configs:
+
+  # --------------------------------------------------------------------------
+  # Prometheus Self-Monitoring
+  # --------------------------------------------------------------------------
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          tier: 'monitoring'
+
+  # --------------------------------------------------------------------------
+  # Kafka Broker JMX Metrics (Day 8)
+  # --------------------------------------------------------------------------
+  - job_name: 'kafka-broker'
+    static_configs:
+      - targets: ['kafka:9093']
+        labels:
+          service: 'kafka'
+          tier: 'streaming'
+    # JMX exporter configuration
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # --------------------------------------------------------------------------
+  # Schema Registry Metrics (Day 6)
+  # --------------------------------------------------------------------------
+  - job_name: 'schema-registry'
+    static_configs:
+      - targets: ['schema-registry:8081']
+        labels:
+          service: 'schema-registry'
+          tier: 'streaming'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # --------------------------------------------------------------------------
+  # Kafka Connect Metrics (Day 7)
+  # --------------------------------------------------------------------------
+  - job_name: 'kafka-connect'
+    static_configs:
+      - targets: ['kafka-connect:8083']
+        labels:
+          service: 'kafka-connect'
+          tier: 'integration'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # --------------------------------------------------------------------------
+  # PostgreSQL Exporter (Analytics Database)
+  # --------------------------------------------------------------------------
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgresql'
+          tier: 'database'
+          database: 'ecommerce_analytics'
+    scrape_interval: 30s
+
+  # --------------------------------------------------------------------------
+  # E-Commerce Application Metrics (Python)
+  # --------------------------------------------------------------------------
+  - job_name: 'ecommerce-app'
+    static_configs:
+      - targets: ['ecommerce-app:9091']
+        labels:
+          service: 'ecommerce-app'
+          tier: 'application'
+          language: 'python'
+
+    # Scrape custom application metrics
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # --------------------------------------------------------------------------
+  # Producer Metrics (Day 3)
+  # --------------------------------------------------------------------------
+  - job_name: 'producers'
+    static_configs:
+      - targets: ['ecommerce-app:9091']
+        labels:
+          service: 'producers'
+          tier: 'application'
+          component: 'producer'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      # Only keep producer-related metrics
+      - source_labels: [__name__]
+        regex: 'ecommerce_messages_produced.*|ecommerce_producer.*'
+        action: keep
+
+  # --------------------------------------------------------------------------
+  # Consumer Metrics (Day 4)
+  # --------------------------------------------------------------------------
+  - job_name: 'consumers'
+    static_configs:
+      - targets: ['ecommerce-app:9091']
+        labels:
+          service: 'consumers'
+          tier: 'application'
+          component: 'consumer'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      # Only keep consumer-related metrics
+      - source_labels: [__name__]
+        regex: 'ecommerce_messages_consumed.*|ecommerce_consumer.*|ecommerce_processing.*'
+        action: keep
+
+  # --------------------------------------------------------------------------
+  # Stream Processing Metrics (Day 6: Faust)
+  # --------------------------------------------------------------------------
+  - job_name: 'stream-processors'
+    static_configs:
+      - targets: ['ecommerce-app:9091']
+        labels:
+          service: 'stream-processors'
+          tier: 'application'
+          component: 'faust'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      # Only keep stream processing metrics
+      - source_labels: [__name__]
+        regex: 'ecommerce_stream.*|faust.*'
+        action: keep
+
+  # --------------------------------------------------------------------------
+  # Error & DLQ Metrics (Day 8)
+  # --------------------------------------------------------------------------
+  - job_name: 'error-handling'
+    static_configs:
+      - targets: ['ecommerce-app:9091']
+        labels:
+          service: 'error-handling'
+          tier: 'application'
+          component: 'dlq'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      # Only keep error and DLQ metrics
+      - source_labels: [__name__]
+        regex: 'ecommerce_errors.*|ecommerce_dlq.*|ecommerce_failures.*'
+        action: keep
+
+  # --------------------------------------------------------------------------
+  # Node Exporter (System Metrics) - Optional
+  # --------------------------------------------------------------------------
+  # - job_name: 'node-exporter'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+  #       labels:
+  #         service: 'node-exporter'
+  #         tier: 'infrastructure'
+  #   scrape_interval: 30s
+
+  # --------------------------------------------------------------------------
+  # cAdvisor (Container Metrics) - Optional
+  # --------------------------------------------------------------------------
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']
+  #       labels:
+  #         service: 'cadvisor'
+  #         tier: 'infrastructure'
+  #   scrape_interval: 30s
+  #   metrics_path: '/metrics'
+
+# ============================================================================
+# Remote Write (Optional - for long-term storage)
+# ============================================================================
+# remote_write:
+#   - url: "http://remote-prometheus:9090/api/v1/write"
+#     queue_config:
+#       capacity: 10000
+#       max_shards: 5
+#       min_shards: 1
+#       max_samples_per_send: 5000
+#       batch_send_deadline: 5s
+#       min_backoff: 30ms
+#       max_backoff: 100ms
+
+# ============================================================================
+# Remote Read (Optional - for querying remote storage)
+# ============================================================================
+# remote_read:
+#   - url: "http://remote-prometheus:9090/api/v1/read"
+
+# ============================================================================
+# Useful Prometheus Queries (for reference)
+# ============================================================================
+#
+# Kafka Metrics:
+# - kafka_server_replicamanager_total_underreplicatedpartitions
+# - kafka_server_brokertopicmetrics_total_messagesinpersec
+# - kafka_controller_kafkacontroller_total_activecontrollercount
+#
+# Producer Metrics:
+# - ecommerce_messages_produced_total
+# - ecommerce_producer_errors_total
+# - rate(ecommerce_messages_produced_total[5m])
+#
+# Consumer Metrics:
+# - ecommerce_messages_consumed_total
+# - ecommerce_consumer_lag
+# - ecommerce_processing_time_seconds
+# - rate(ecommerce_messages_consumed_total[5m])
+#
+# Stream Processing:
+# - ecommerce_stream_events_processed_total
+# - ecommerce_stream_state_size_bytes
+# - rate(ecommerce_stream_events_processed_total[5m])
+#
+# Error Metrics:
+# - ecommerce_errors_total
+# - ecommerce_dlq_messages_total
+# - rate(ecommerce_errors_total[5m])
+#
+# System Metrics (if exporters enabled):
+# - node_cpu_seconds_total
+# - node_memory_MemAvailable_bytes
+# - container_memory_usage_bytes
+# - container_cpu_usage_seconds_total
+#
+# ============================================================================
+# Alert Examples (create alerts/*.yml files)
+# ============================================================================
+#
+# High Consumer Lag:
+# - alert: HighConsumerLag
+#   expr: ecommerce_consumer_lag > 1000
+#   for: 5m
+#   labels:
+#     severity: warning
+#   annotations:
+#     summary: "High consumer lag detected"
+#     description: "Consumer lag is {{ $value }} messages"
+#
+# High Error Rate:
+# - alert: HighErrorRate
+#   expr: rate(ecommerce_errors_total[5m]) > 10
+#   for: 2m
+#   labels:
+#     severity: critical
+#   annotations:
+#     summary: "High error rate detected"
+#     description: "Error rate is {{ $value }} errors/sec"
+#
+# ============================================================================

@@ -1,8 +1,14 @@
-# Capstone Presentation Guide
+# Capstone Presentation Guide - Java Track
+
+!!! note "Track Selection"
+    This guide is for Java/Spring Boot developers working on the EventMart microservices project.
+
+    - Python/Data Engineering Track: See [Python Capstone Guide](capstone-guide-python.md)
+    - Optional Extensions: See [Capstone Extensions](capstone-extensions.md)
 
 ## Overview
 
-The capstone presentation is your opportunity to demonstrate mastery of Apache Kafka and event-driven architecture. This guide will help you prepare a compelling presentation that showcases your technical skills and understanding.
+The capstone presentation is your opportunity to demonstrate mastery of Apache Kafka and event-driven architecture using **Java and Spring Boot**. This guide will help you prepare a compelling presentation that showcases your technical skills and understanding of the **EventMart** e-commerce platform.
 
 ## Presentation Format
 

@@ -1,0 +1,385 @@
+version: '3.8'
+
+# ============================================================================
+# E-Commerce Analytics Platform - Docker Compose Configuration
+# Apache Kafka Training - Days 1-8 with Python Capstone
+# ============================================================================
+
+services:
+
+  # ==========================================================================
+  # Zookeeper - Kafka cluster coordination (Day 1)
+  # ==========================================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.8.0
+    container_name: ecommerce-zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SYNC_LIMIT: 2
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================================================
+  # Kafka Broker - Distributed streaming platform (Days 1-2)
+  # ==========================================================================
+  kafka:
+    image: confluentinc/cp-kafka:7.8.0
+    container_name: ecommerce-kafka
+    hostname: kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      # Listener configuration
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # Replication and durability settings
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+
+      # Performance tuning
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_COMPRESSION_TYPE: snappy
+
+      # JMX for monitoring (Day 8)
+      KAFKA_JMX_PORT: 9093
+      KAFKA_JMX_HOSTNAME: localhost
+
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # ==========================================================================
+  # Schema Registry - Avro schema management (Day 6)
+  # ==========================================================================
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.8.0
+    container_name: ecommerce-schema-registry
+    hostname: schema-registry
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
+      SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: BACKWARD
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/subjects"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================================================
+  # PostgreSQL - Analytics database (Day 7: Kafka Connect sink)
+  # ==========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: ecommerce-postgres
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ecommerce_analytics
+      POSTGRES_USER: ${POSTGRES_USER:-analytics_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-analytics_pass}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics_user -d ecommerce_analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================================================
+  # Kafka Connect - Data integration (Day 7)
+  # ==========================================================================
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.8.0
+    container_name: ecommerce-kafka-connect
+    hostname: kafka-connect
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:29092
+      CONNECT_REST_PORT: 8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_GROUP_ID: ecommerce-connect-cluster
+
+      # Configuration storage topics
+      CONNECT_CONFIG_STORAGE_TOPIC: _connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: _connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: _connect-status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+
+      # Converters
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+
+      # Internal converters
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+
+      # Plugins
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+
+    volumes:
+      - kafka-connect-data:/data
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/connectors"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    command:
+      - bash
+      - -c
+      - |
+        # Install JDBC connector
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.7.6
+        # Start Connect
+        /etc/confluent/docker/run
+
+  # ==========================================================================
+  # Prometheus - Metrics collection (Day 8)
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: ecommerce-prometheus
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================================================
+  # Grafana - Metrics visualization (Day 8)
+  # ==========================================================================
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: ecommerce-grafana
+    hostname: grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/kafka-metrics.json
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/kafka-metrics.json:ro
+      - ./monitoring/grafana-datasource.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================================================
+  # E-Commerce Analytics Application - Python Capstone
+  # ==========================================================================
+  ecommerce-app:
+    build:
+      context: ../../../
+      dockerfile: src/main/python/Dockerfile
+    container_name: ecommerce-app
+    hostname: ecommerce-app
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      # Kafka configuration
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+
+      # PostgreSQL configuration
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ecommerce_analytics
+      POSTGRES_USER: ${POSTGRES_USER:-analytics_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-analytics_pass}
+
+      # Application configuration
+      LOG_LEVEL: INFO
+      PYTHONPATH: /app/src/main/python
+
+    volumes:
+      - ../../../src/main/python:/app/src/main/python:ro
+      - rocksdb-data:/app/data/rocksdb
+      - app-logs:/app/logs
+    networks:
+      - kafka-network
+    # Default: Run demo on startup
+    command: ["python", "-m", "ecommerce_analytics.demo.run_demo", "--events", "100", "--delay", "0.5"]
+
+  # ==========================================================================
+  # Example: Run individual components (comment/uncomment as needed)
+  # ==========================================================================
+
+  # Producer Example
+  # producer:
+  #   extends: ecommerce-app
+  #   container_name: ecommerce-producer
+  #   command: ["python", "-m", "ecommerce_analytics.producers.user_event_producer"]
+
+  # Consumer Example
+  # consumer:
+  #   extends: ecommerce-app
+  #   container_name: ecommerce-consumer
+  #   command: ["python", "-m", "ecommerce_analytics.consumers.user_consumer"]
+
+  # Stream Processor Example
+  # stream-processor:
+  #   extends: ecommerce-app
+  #   container_name: ecommerce-stream-processor
+  #   command: ["python", "-m", "ecommerce_analytics.streams.sales_aggregator", "worker", "-l", "info"]
+
+# ============================================================================
+# Volumes - Persistent data storage
+# ============================================================================
+volumes:
+  zookeeper-data:
+    name: ecommerce-zookeeper-data
+  zookeeper-logs:
+    name: ecommerce-zookeeper-logs
+  kafka-data:
+    name: ecommerce-kafka-data
+  postgres-data:
+    name: ecommerce-postgres-data
+  kafka-connect-data:
+    name: ecommerce-kafka-connect-data
+  prometheus-data:
+    name: ecommerce-prometheus-data
+  grafana-data:
+    name: ecommerce-grafana-data
+  rocksdb-data:
+    name: ecommerce-rocksdb-data
+  app-logs:
+    name: ecommerce-app-logs
+
+# ============================================================================
+# Networks - Isolated network for all services
+# ============================================================================
+networks:
+  kafka-network:
+    name: kafka-network
+    driver: bridge
+
+# ============================================================================
+# Usage Instructions:
+# ============================================================================
+#
+# Start all services:
+#   docker-compose up -d
+#
+# Start specific service:
+#   docker-compose up -d kafka schema-registry
+#
+# View logs:
+#   docker-compose logs -f ecommerce-app
+#
+# Stop all services:
+#   docker-compose down
+#
+# Stop and remove volumes (WARNING: deletes all data):
+#   docker-compose down -v
+#
+# Rebuild application:
+#   docker-compose build ecommerce-app
+#   docker-compose up -d ecommerce-app
+#
+# Run demo:
+#   docker-compose run --rm ecommerce-app python -m ecommerce_analytics.demo.run_demo --events 100
+#
+# Run setup:
+#   docker-compose run --rm ecommerce-app python -m ecommerce_analytics.demo.setup --recreate-topics
+#
+# Scale consumers:
+#   docker-compose up -d --scale consumer=3
+#
+# Access services:
+#   Kafka:            localhost:9092
+#   Schema Registry:  http://localhost:8081
+#   Kafka Connect:    http://localhost:8083
+#   PostgreSQL:       localhost:5432
+#   Prometheus:       http://localhost:9090
+#   Grafana:          http://localhost:3000 (admin/admin)
+#
+# ============================================================================

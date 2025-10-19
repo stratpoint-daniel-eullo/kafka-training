@@ -1,0 +1,84 @@
+{
+  "type": "record",
+  "name": "UserEvent",
+  "namespace": "com.training.kafka.ecommerce.events",
+  "doc": "User lifecycle events for e-commerce platform (Day 5: Avro Schema)",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for this event (UUID)"
+    },
+    {
+      "name": "event_type",
+      "type": {
+        "type": "enum",
+        "name": "UserEventType",
+        "symbols": [
+          "USER_REGISTERED",
+          "USER_UPDATED",
+          "USER_LOGIN",
+          "USER_LOGOUT",
+          "USER_DELETED"
+        ]
+      },
+      "doc": "Type of user event"
+    },
+    {
+      "name": "user_id",
+      "type": "string",
+      "doc": "Unique identifier for the user"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp in milliseconds since epoch"
+    },
+    {
+      "name": "email",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "User email address (optional for privacy)"
+    },
+    {
+      "name": "username",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "User display name"
+    },
+    {
+      "name": "country",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "User country code (ISO 3166-1 alpha-2)"
+    },
+    {
+      "name": "user_metadata",
+      "type": [
+        "null",
+        {
+          "type": "map",
+          "values": "string"
+        }
+      ],
+      "default": null,
+      "doc": "Additional user attributes as key-value pairs"
+    },
+    {
+      "name": "source_system",
+      "type": {
+        "type": "string",
+        "default": "ecommerce-platform"
+      },
+      "default": "ecommerce-platform",
+      "doc": "System that generated this event"
+    },
+    {
+      "name": "schema_version",
+      "type": "string",
+      "default": "1.0.0",
+      "doc": "Schema version for compatibility tracking"
+    }
+  ]
+}

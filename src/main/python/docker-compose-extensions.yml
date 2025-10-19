@@ -1,0 +1,351 @@
+version: '3.8'
+
+# ============================================================================
+# E-Commerce Analytics Platform - Extensions
+# Apache Airflow + Apache Flink for Advanced Analytics
+# ============================================================================
+# This file extends the base docker-compose.yml with additional services
+# for workflow orchestration (Airflow) and stream processing (Flink)
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose-extensions.yml up -d
+# ============================================================================
+
+services:
+
+  # ==========================================================================
+  # Apache Airflow - Workflow Orchestration
+  # ==========================================================================
+
+  # PostgreSQL for Airflow metadata
+  airflow-postgres:
+    image: postgres:16-alpine
+    container_name: ecommerce-airflow-postgres
+    hostname: airflow-postgres
+    environment:
+      POSTGRES_DB: airflow
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+    volumes:
+      - airflow-postgres-data:/var/lib/postgresql/data
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Airflow Celery executor
+  airflow-redis:
+    image: redis:7-alpine
+    container_name: ecommerce-airflow-redis
+    hostname: airflow-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Airflow Webserver
+  airflow-webserver:
+    image: apache/airflow:2.10.4-python3.11
+    container_name: ecommerce-airflow-webserver
+    hostname: airflow-webserver
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-redis:
+        condition: service_healthy
+    environment: &airflow-common-env
+      # Core Airflow settings
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://airflow-redis:6379/0
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:-46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=}
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+
+      # Kafka connection for Airflow DAGs
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      POSTGRES_CONN: postgresql://analytics_user:analytics_pass@postgres:5432/ecommerce_analytics
+
+      # User management
+      _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_USER:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_PASSWORD:-admin}
+
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins:ro
+      - airflow-data:/opt/airflow
+    networks:
+      - kafka-network
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    command: webserver
+
+  # Airflow Scheduler
+  airflow-scheduler:
+    image: apache/airflow:2.10.4-python3.11
+    container_name: ecommerce-airflow-scheduler
+    hostname: airflow-scheduler
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-redis:
+        condition: service_healthy
+    environment: *airflow-common-env
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins:ro
+      - airflow-data:/opt/airflow
+    networks:
+      - kafka-network
+    command: scheduler
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # Airflow Worker (Celery)
+  airflow-worker:
+    image: apache/airflow:2.10.4-python3.11
+    container_name: ecommerce-airflow-worker
+    hostname: airflow-worker
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-redis:
+        condition: service_healthy
+    environment: *airflow-common-env
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins:ro
+      - airflow-data:/opt/airflow
+    networks:
+      - kafka-network
+    command: celery worker
+    healthcheck:
+      test: ["CMD-SHELL", 'celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # Airflow Triggerer
+  airflow-triggerer:
+    image: apache/airflow:2.10.4-python3.11
+    container_name: ecommerce-airflow-triggerer
+    hostname: airflow-triggerer
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-redis:
+        condition: service_healthy
+    environment: *airflow-common-env
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins:ro
+      - airflow-data:/opt/airflow
+    networks:
+      - kafka-network
+    command: triggerer
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # Airflow CLI (for initialization and management)
+  airflow-init:
+    image: apache/airflow:2.10.4-python3.11
+    container_name: ecommerce-airflow-init
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-redis:
+        condition: service_healthy
+    environment: *airflow-common-env
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins:ro
+      - airflow-data:/opt/airflow
+    networks:
+      - kafka-network
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        # Initialize database
+        airflow db migrate
+        # Create admin user
+        airflow users create \
+          --username $${_AIRFLOW_WWW_USER_USERNAME} \
+          --password $${_AIRFLOW_WWW_USER_PASSWORD} \
+          --firstname Admin \
+          --lastname User \
+          --role Admin \
+          --email admin@example.com || true
+    restart: on-failure
+
+  # ==========================================================================
+  # Apache Flink - Stream Processing
+  # ==========================================================================
+
+  # Flink JobManager
+  flink-jobmanager:
+    image: flink:1.20.0-scala_2.12-java11
+    container_name: ecommerce-flink-jobmanager
+    hostname: flink-jobmanager
+    ports:
+      - "8081:8081"
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
+      - FLINK_PROPERTIES=jobmanager.rpc.address: flink-jobmanager
+    volumes:
+      - flink-data:/opt/flink/data
+      - ./flink/jobs:/opt/flink/jobs:ro
+    networks:
+      - kafka-network
+    command: jobmanager
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flink TaskManager
+  flink-taskmanager:
+    image: flink:1.20.0-scala_2.12-java11
+    container_name: ecommerce-flink-taskmanager
+    hostname: flink-taskmanager
+    depends_on:
+      flink-jobmanager:
+        condition: service_healthy
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
+      - TASK_MANAGER_NUMBER_OF_TASK_SLOTS=4
+      - FLINK_PROPERTIES=jobmanager.rpc.address: flink-jobmanager
+    volumes:
+      - flink-data:/opt/flink/data
+    networks:
+      - kafka-network
+    command: taskmanager
+    scale: 2
+
+  # Flink SQL Client (for interactive queries)
+  flink-sql-client:
+    image: flink:1.20.0-scala_2.12-java11
+    container_name: ecommerce-flink-sql-client
+    hostname: flink-sql-client
+    depends_on:
+      flink-jobmanager:
+        condition: service_healthy
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    volumes:
+      - flink-data:/opt/flink/data
+      - ./flink/sql:/opt/flink/sql:ro
+    networks:
+      - kafka-network
+    command: bin/sql-client.sh
+    stdin_open: true
+    tty: true
+
+# ============================================================================
+# Volumes - Persistent data storage for extensions
+# ============================================================================
+volumes:
+  airflow-postgres-data:
+    name: ecommerce-airflow-postgres-data
+  airflow-data:
+    name: ecommerce-airflow-data
+  flink-data:
+    name: ecommerce-flink-data
+
+# ============================================================================
+# Networks - Use the same network as base services
+# ============================================================================
+networks:
+  kafka-network:
+    external: true
+
+# ============================================================================
+# Usage Instructions:
+# ============================================================================
+#
+# Start base services + extensions:
+#   docker-compose -f docker-compose.yml -f docker-compose-extensions.yml up -d
+#
+# Start only extensions (assumes base is running):
+#   docker-compose -f docker-compose-extensions.yml up -d
+#
+# View Airflow logs:
+#   docker-compose -f docker-compose-extensions.yml logs -f airflow-scheduler
+#
+# Access Airflow UI:
+#   http://localhost:8080 (admin/admin)
+#
+# Access Flink Dashboard:
+#   http://localhost:8081
+#
+# Submit Flink job:
+#   docker exec -it ecommerce-flink-jobmanager \
+#     flink run -c com.example.FlinkJob /opt/flink/jobs/myjob.jar
+#
+# Airflow CLI:
+#   docker exec -it ecommerce-airflow-scheduler airflow dags list
+#
+# Flink SQL Client:
+#   docker attach ecommerce-flink-sql-client
+#
+# Stop extensions only:
+#   docker-compose -f docker-compose-extensions.yml down
+#
+# Stop all (base + extensions):
+#   docker-compose -f docker-compose.yml -f docker-compose-extensions.yml down
+#
+# ============================================================================
+# Example Airflow DAG structure:
+# ============================================================================
+# ./airflow/dags/
+#   ├── kafka_to_postgres_dag.py    # ETL pipeline
+#   ├── daily_analytics_dag.py      # Scheduled analytics
+#   └── data_quality_dag.py         # Data validation
+#
+# ./airflow/plugins/
+#   ├── kafka_plugin.py             # Custom Kafka operators
+#   └── metrics_plugin.py           # Custom metrics
+#
+# ============================================================================
+# Example Flink jobs:
+# ============================================================================
+# ./flink/jobs/
+#   ├── fraud_detection.jar         # Real-time fraud detection
+#   ├── revenue_aggregation.jar     # Revenue analytics
+#   └── user_behavior.jar           # User behavior analysis
+#
+# ./flink/sql/
+#   ├── create_tables.sql           # Kafka table definitions
+#   └── queries.sql                 # Example SQL queries
+# ============================================================================
