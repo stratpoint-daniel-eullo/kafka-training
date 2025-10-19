@@ -1,5 +1,11 @@
 # EventMart: Progressive Kafka Training Project
 
+> **Java Developer Track - Spring Boot Project**
+>
+> This document describes the **EventMart Spring Boot project** for the Java Developer track. Data engineers should use pure Kafka examples in the Data Engineer track.
+>
+> **Choose your track**: [START-HERE.md](./START-HERE.md)
+
 ## 🎯 Project Overview
 
 **EventMart** is a real-world e-commerce event streaming platform that trainees build progressively throughout the 8-day Kafka training course. Each day adds new functionality, culminating in a complete, demonstrable system.

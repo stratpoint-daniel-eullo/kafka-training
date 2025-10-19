@@ -1,8 +1,10 @@
 # 🐳 Container-First Kafka Training - Complete Overview
 
+> **Both Tracks:** Container infrastructure supports both Data Engineer and Java Developer tracks. This guide shows examples for both.
+
 ## ✅ What Makes This Training "Container-First"
 
-This Kafka training is now **production-ready** and **container-first**, designed specifically for modern data engineers who work with containers daily.
+This Kafka training is now **production-ready** and **container-first**, designed specifically for modern data engineers who work with containers daily. Containers work for both pure Kafka applications and Spring Boot applications.
 
 ---
 

@@ -2,6 +2,9 @@
 
 Complete REST API documentation for the Kafka Training Spring Boot application.
 
+!!! note "Java Developer Track Only"
+    This API reference is for the **optional Spring Boot track**. Data engineers following the pure Kafka track don't need these REST APIs - use CLI tools and raw Kafka APIs instead.
+
 ## Base URL
 
 **Local Development:** `http://localhost:8080`

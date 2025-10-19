@@ -1,6 +1,6 @@
 # Kafka Training - Container-First Data Engineering Documentation
-site_name: Kafka Training - Container-First Data Engineering
-site_description: Comprehensive 8-day Apache Kafka training program with Spring Boot, Docker, and Kubernetes for data engineers
+site_name: Kafka Training for Data Engineers
+site_description: Comprehensive 8-day Apache Kafka training with platform-agnostic fundamentals, pure APIs, CLI tools, Docker, and Kubernetes for data engineers
 site_author: Kafka Training Team
 site_url: https://yourusername.github.io/kafka-training-java
 

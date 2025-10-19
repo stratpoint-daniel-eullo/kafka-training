@@ -1,5 +1,8 @@
 # Spring Boot Actuator Endpoints
 
+> **⚠️ Java Developer Track Only**
+> Spring Boot Actuator endpoints. Data engineers use JMX, Prometheus, and Kafka's native monitoring tools instead.
+
 Actuator provides production-ready endpoints for monitoring and management.
 
 ## Health Checks

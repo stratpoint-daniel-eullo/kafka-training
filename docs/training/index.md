@@ -1,6 +1,9 @@
 # Training Curriculum
 
-Welcome to the 8-day Apache Kafka training curriculum. This comprehensive program takes you from Kafka fundamentals to production-ready implementations using Spring Boot and containers.
+Welcome to the 8-day Apache Kafka training curriculum. This comprehensive program takes you from Kafka fundamentals to production-ready implementations using platform-agnostic patterns and container-first workflows.
+
+!!! note "Data Engineer Focused"
+    This curriculum emphasizes **pure Kafka APIs** and CLI-based workflows. While Spring Boot examples are available, the primary focus is on transferable Kafka knowledge that works with any platform.
 
 ## Training Structure
 
@@ -164,20 +167,20 @@ Each day follows a structured approach:
 
 ### 1. Theory (45-60 minutes)
 
-- Core concepts introduction
+- Core Kafka concepts introduction
 - Architecture diagrams
 - Best practices overview
 
 ### 2. Hands-On Examples (60-90 minutes)
 
-- Live coding demonstrations
-- Spring Boot implementations
+- Live coding with pure Kafka APIs
+- CLI tool demonstrations
 - Docker container exercises
 
 ### 3. Practice Exercises (45-60 minutes)
 
 - Independent coding tasks
-- Problem-solving challenges
+- CLI-based problem solving
 - Code review and discussion
 
 ### 4. EventMart Integration (30 minutes)
@@ -186,9 +189,9 @@ Each day follows a structured approach:
 - Build progressive features
 - Integration testing
 
-## REST API Endpoints by Day
+## REST API Endpoints by Day (Optional - Java Track Only)
 
-Each training day has corresponding REST API endpoints:
+For those following the Spring Boot track, each training day has corresponding REST API endpoints:
 
 | Day | Endpoint | Description |
 |-----|----------|-------------|
@@ -209,22 +212,22 @@ Track your learning progress:
 
 <div class="success-box">
 <strong>Days 1-2: Beginner</strong><br/>
-Understanding Kafka basics, topics, and partitions
+Understanding Kafka basics, CLI tools, topics, and partitions
 </div>
 
 <div class="success-box">
 <strong>Days 3-4: Intermediate</strong><br/>
-Building producers and consumers with Spring Boot
+Building producers and consumers with pure Kafka APIs
 </div>
 
 <div class="success-box">
 <strong>Days 5-6: Advanced</strong><br/>
-Schema management and stream processing
+Schema management and stream processing with Kafka Streams
 </div>
 
 <div class="success-box">
 <strong>Days 7-8: Expert</strong><br/>
-Integration patterns and production deployment
+Kafka Connect, security, and production deployment
 </div>
 
 </div>

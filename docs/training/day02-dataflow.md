@@ -1,5 +1,9 @@
 # Day 2: Data Flow and Message Patterns
 
+> **Primary Audience:** Data Engineers
+
+> **Learning Track:** This content is platform-agnostic and applies to both Data Engineer and Java Developer tracks. Implementation examples are provided for both approaches.
+
 ## Learning Objectives
 
 By the end of Day 2, you will:
@@ -12,28 +16,15 @@ By the end of Day 2, you will:
 - [ ] Guarantee message ordering
 - [ ] Monitor consumer lag and offsets
 
-## Producer Delivery Semantics
+## Core Concepts
+
+### Producer Delivery Semantics
 
 Kafka supports three delivery guarantees that balance performance, durability, and consistency.
 
-### At-Most-Once Delivery
+#### At-Most-Once Delivery
 
 Messages are sent without acknowledgment. May be lost but never duplicated.
-
-```java
-@Service
-public class AtMostOnceProducer {
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
-    public void sendFireAndForget(String topic, String message) {
-        // No callback, no waiting for acknowledgment
-        kafkaTemplate.send(topic, message);
-        // If broker fails, message is lost
-    }
-}
-```
 
 **Configuration:**
 
@@ -44,6 +35,7 @@ retries=0
 ```
 
 **Use Cases:**
+
 - Metrics collection where occasional data loss is acceptable
 - High-throughput logging
 - Non-critical telemetry data
@@ -51,33 +43,9 @@ retries=0
 !!! warning "Data Loss Risk"
     At-most-once delivery provides no guarantees. Messages can be lost if the broker fails or network issues occur.
 
-### At-Least-Once Delivery (Default)
+#### At-Least-Once Delivery (Default)
 
 Messages are guaranteed to be delivered at least once. May result in duplicates.
-
-```java
-@Service
-public class AtLeastOnceProducer {
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
-    public void sendWithRetries(String topic, String key, String message) {
-        SendResult<String, String> result = kafkaTemplate.send(topic, key, message)
-            .thenApply(sendResult -> {
-                RecordMetadata metadata = sendResult.getRecordMetadata();
-                log.info("Message sent to partition {} at offset {}",
-                    metadata.partition(), metadata.offset());
-                return sendResult;
-            })
-            .exceptionally(ex -> {
-                log.error("Failed to send message", ex);
-                throw new RuntimeException("Send failed", ex);
-            })
-            .join();
-    }
-}
-```
 
 **Configuration:**
 
@@ -85,13 +53,14 @@ public class AtLeastOnceProducer {
 # Wait for acknowledgment from leader
 acks=1
 # Retry on failure
-retries=Integer.MAX_VALUE
+retries=2147483647
 # Ensure ordering during retries
 max.in.flight.requests.per.connection=5
 enable.idempotence=true
 ```
 
 **Use Cases:**
+
 - Most production applications
 - Order processing
 - Financial transactions (with idempotent consumers)
@@ -100,32 +69,9 @@ enable.idempotence=true
 !!! tip "Idempotent Consumers"
     When using at-least-once delivery, implement idempotent consumers to handle duplicate messages gracefully.
 
-### Exactly-Once Semantics (EOS)
+#### Exactly-Once Semantics (EOS)
 
 Guarantees that messages are delivered exactly once, no duplicates, no losses.
-
-```java
-@Service
-public class ExactlyOnceProducer {
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
-    @Transactional("kafkaTransactionManager")
-    public void sendTransactional(String topic, List<String> messages) {
-        try {
-            for (String message : messages) {
-                kafkaTemplate.send(topic, message);
-            }
-            // All messages committed together
-            kafkaTemplate.flush();
-        } catch (Exception e) {
-            // All messages rolled back on failure
-            throw new RuntimeException("Transaction failed", e);
-        }
-    }
-}
-```
 
 **Configuration:**
 
@@ -134,7 +80,7 @@ public class ExactlyOnceProducer {
 enable.idempotence=true
 transactional.id=my-transactional-producer-1
 acks=all
-retries=Integer.MAX_VALUE
+retries=2147483647
 max.in.flight.requests.per.connection=5
 ```
 
@@ -147,27 +93,13 @@ max.in.flight.requests.per.connection=5
 !!! success "Production Recommendation"
     Use exactly-once semantics for critical business logic. The performance overhead is minimal compared to the consistency benefits.
 
-## Partitioning Strategies
+### Partitioning Strategies
 
 Partitioning determines how messages are distributed across topic partitions.
 
-### Round-Robin Partitioning
+#### Round-Robin Partitioning
 
 When no key is provided, messages are distributed evenly across partitions.
-
-```java
-@Service
-public class RoundRobinProducer {
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
-    public void sendRoundRobin(String topic, String message) {
-        // No key = round-robin distribution
-        kafkaTemplate.send(topic, message);
-    }
-}
-```
 
 ```mermaid
 graph LR
@@ -189,33 +121,9 @@ graph LR
 - Maximum throughput
 - Parallel processing
 
-### Key-Based Partitioning
+#### Key-Based Partitioning
 
 Messages with the same key always go to the same partition.
-
-```java
-@Service
-public class KeyBasedProducer {
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
-    public void sendWithKey(String topic, String userId, String message) {
-        // Same userId always goes to same partition
-        kafkaTemplate.send(topic, userId, message);
-    }
-
-    public void sendUserEvent(String userId, String event) {
-        String topic = "user-events";
-        String key = userId;  // Partition by user ID
-        String value = String.format("{\"userId\":\"%s\",\"event\":\"%s\"}",
-            userId, event);
-
-        kafkaTemplate.send(topic, key, value);
-        // All events for user123 go to same partition
-    }
-}
-```
 
 ```mermaid
 graph LR
@@ -244,55 +152,11 @@ graph LR
 
     Changing partition count breaks this guarantee for existing keys!
 
-### Custom Partitioning
-
-Implement custom logic for partition assignment.
-
-```java
-public class CustomPartitioner implements Partitioner {
-
-    @Override
-    public int partition(String topic, Object key, byte[] keyBytes,
-                        Object value, byte[] valueBytes,
-                        Cluster cluster) {
-
-        List<PartitionInfo> partitions = cluster.partitionsForTopic(topic);
-        int numPartitions = partitions.size();
-
-        if (key == null) {
-            // Random partition for null keys
-            return ThreadLocalRandom.current().nextInt(numPartitions);
-        }
-
-        // Custom logic: VIP users go to partition 0
-        if (key.toString().startsWith("VIP-")) {
-            return 0;
-        }
-
-        // Others use hash-based partitioning
-        return Math.abs(key.hashCode()) % numPartitions;
-    }
-
-    @Override
-    public void close() {}
-
-    @Override
-    public void configure(Map<String, ?> configs) {}
-}
-```
-
-**Configuration:**
-
-```properties
-# Use custom partitioner
-partitioner.class=com.kafkatraining.partitioner.CustomPartitioner
-```
-
-## Consumer Groups and Rebalancing
+### Consumer Groups and Rebalancing
 
 Consumer groups enable parallel processing and fault tolerance.
 
-### Consumer Group Concepts
+#### Consumer Group Concepts
 
 ```mermaid
 graph TB
@@ -327,9 +191,7 @@ graph TB
 - Maximum consumers = number of partitions
 - Different consumer groups consume independently
 
-### Consumer Rebalancing
-
-Rebalancing redistributes partitions when consumers join or leave.
+#### Consumer Rebalancing
 
 ```mermaid
 sequenceDiagram
@@ -377,37 +239,13 @@ partition.assignment.strategy=org.apache.kafka.clients.consumer.RangeAssignor
     - Ensure consumers process messages quickly
     - Handle rebalancing gracefully in your application
 
-## Offset Management
+### Offset Management
 
 Offsets track consumer progress in each partition.
 
-### Auto-Commit Offsets
+#### Auto-Commit Offsets
 
 Kafka automatically commits offsets periodically.
-
-```java
-@Service
-public class AutoCommitConsumer {
-
-    @KafkaListener(
-        topics = "user-events",
-        groupId = "auto-commit-group",
-        properties = {
-            "enable.auto.commit=true",
-            "auto.commit.interval.ms=5000"
-        }
-    )
-    public void consume(ConsumerRecord<String, String> record) {
-        log.info("Consumed: partition={}, offset={}, value={}",
-            record.partition(), record.offset(), record.value());
-
-        // Process message
-        processEvent(record.value());
-
-        // Offset auto-committed every 5 seconds
-    }
-}
-```
 
 **Configuration:**
 
@@ -426,55 +264,19 @@ auto.commit.interval.ms=5000
 - May process duplicates after rebalance
 - Less control over commit timing
 
-### Manual Commit Offsets
+#### Manual Commit Offsets
 
 Application controls when offsets are committed.
-
-```java
-@Service
-public class ManualCommitConsumer {
-
-    @KafkaListener(
-        topics = "order-events",
-        groupId = "manual-commit-group",
-        properties = {
-            "enable.auto.commit=false"
-        }
-    )
-    public void consume(ConsumerRecord<String, String> record,
-                       Acknowledgment acknowledgment) {
-        try {
-            // Process message
-            processOrder(record.value());
-
-            // Save to database
-            orderRepository.save(parseOrder(record.value()));
-
-            // Commit offset only after successful processing
-            acknowledgment.acknowledge();
-
-            log.info("Successfully processed and committed offset {}",
-                record.offset());
-
-        } catch (Exception e) {
-            log.error("Failed to process message, will retry", e);
-            // Don't commit - message will be reprocessed
-        }
-    }
-}
-```
 
 **Configuration:**
 
 ```properties
 enable.auto.commit=false
-# Spring Kafka acknowledgment mode
-spring.kafka.listener.ack-mode=MANUAL
 ```
 
 **Commit Strategies:**
 
-1. **MANUAL** - Explicitly call `acknowledgment.acknowledge()`
+1. **MANUAL** - Explicitly call acknowledgment
 2. **MANUAL_IMMEDIATE** - Commit immediately when acknowledged
 3. **BATCH** - Commit after processing batch of records
 4. **RECORD** - Commit after each record (safest, slowest)
@@ -482,7 +284,7 @@ spring.kafka.listener.ack-mode=MANUAL
 !!! success "Best Practice"
     Use manual commits for at-least-once delivery with proper error handling and idempotent processing.
 
-### Offset Reset Strategies
+#### Offset Reset Strategies
 
 Control behavior when no offset exists or offset is invalid.
 
@@ -496,43 +298,13 @@ auto.offset.reset=earliest
 # - none: Throw exception if no offset found
 ```
 
-```java
-@KafkaListener(
-    topics = "historical-events",
-    groupId = "batch-processor",
-    properties = {
-        "auto.offset.reset=earliest"
-    }
-)
-public void processHistoricalEvents(String event) {
-    // Processes all events from the beginning
-}
-```
-
-## Message Ordering Guarantees
+### Message Ordering Guarantees
 
 Kafka provides ordering guarantees at the partition level.
 
-### Ordering Within Partition
+#### Ordering Within Partition
 
 Messages in the same partition are strictly ordered.
-
-```java
-@Service
-public class OrderedProducer {
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
-    public void sendUserEvents(String userId, List<String> events) {
-        for (String event : events) {
-            // All events for same userId go to same partition
-            // Guaranteed to be processed in order
-            kafkaTemplate.send("user-events", userId, event);
-        }
-    }
-}
-```
 
 ```mermaid
 graph TB
@@ -559,125 +331,13 @@ graph TB
 - `max.in.flight.requests.per.connection=1` (without idempotence)
 - Or `enable.idempotence=true` (allows up to 5 in-flight)
 
-### No Ordering Across Partitions
+## Hands-On Examples
 
-Messages in different partitions have no ordering guarantees.
+### CLI Approach (Data Engineer Track - Recommended)
 
-```java
-// DON'T do this if order matters
-kafkaTemplate.send("events", null, "event1");  // Random partition
-kafkaTemplate.send("events", null, "event2");  // Random partition
-kafkaTemplate.send("events", null, "event3");  // Random partition
-// event2 might be consumed before event1!
+#### Using Kafka CLI Tools
 
-// DO this for ordered events
-kafkaTemplate.send("events", "user123", "event1");  // Same partition
-kafkaTemplate.send("events", "user123", "event2");  // Same partition
-kafkaTemplate.send("events", "user123", "event3");  // Same partition
-// Guaranteed order: event1 -> event2 -> event3
-```
-
-## REST API Endpoints
-
-The Day 2 training module provides these REST endpoints:
-
-### Run Day 2 Demo
-
-```bash
-curl -X POST http://localhost:8080/api/training/day02/demo
-```
-
-**Response:**
-
-```json
-{
-  "status": "success",
-  "message": "Day 2 data flow demonstration completed",
-  "demonstrations": [
-    "Producer semantics (at-least-once, at-most-once, exactly-once)",
-    "Partitioning strategies (round-robin, key-based)",
-    "Consumer group operations",
-    "Offset management"
-  ]
-}
-```
-
-### Get Day 2 Concepts
-
-```bash
-curl http://localhost:8080/api/training/day02/concepts
-```
-
-**Response:**
-
-```json
-{
-  "concepts": [
-    {
-      "name": "At-Least-Once",
-      "description": "Messages delivered at least once, may have duplicates",
-      "config": "acks=1, retries>0"
-    },
-    {
-      "name": "Exactly-Once",
-      "description": "Messages delivered exactly once, no duplicates",
-      "config": "enable.idempotence=true, transactional.id set"
-    }
-  ]
-}
-```
-
-### Check Consumer Lag
-
-```bash
-curl http://localhost:8080/api/training/day02/consumer-lag/my-consumer-group
-```
-
-**Response:**
-
-```json
-{
-  "groupId": "my-consumer-group",
-  "totalLag": 1542,
-  "partitions": [
-    {
-      "partition": 0,
-      "currentOffset": 10000,
-      "endOffset": 10500,
-      "lag": 500
-    },
-    {
-      "partition": 1,
-      "currentOffset": 9800,
-      "endOffset": 10842,
-      "lag": 1042
-    }
-  ]
-}
-```
-
-### Get Consumer Offsets
-
-```bash
-curl http://localhost:8080/api/training/day02/offsets/my-consumer-group
-```
-
-**Response:**
-
-```json
-{
-  "groupId": "my-consumer-group",
-  "offsets": {
-    "user-events-0": 10000,
-    "user-events-1": 9800,
-    "user-events-2": 11200
-  }
-}
-```
-
-## Hands-On Exercises
-
-### Exercise 1: Test Delivery Semantics
+**Test Delivery Semantics:**
 
 ```bash
 # 1. Terminal 1: Start consumer with auto-commit
@@ -702,7 +362,7 @@ docker exec -it kafka-training-kafka kafka-console-producer \
 # 5. Observe the difference in behavior
 ```
 
-### Exercise 2: Partitioning Experiment
+**Partitioning Experiment:**
 
 ```bash
 # Create topic with 3 partitions
@@ -737,7 +397,7 @@ docker exec kafka-training-kafka kafka-console-consumer \
 # Observe: Same keys go to same partitions!
 ```
 
-### Exercise 3: Consumer Group Scaling
+**Consumer Group Scaling:**
 
 ```bash
 # Terminal 1: Start first consumer
@@ -762,7 +422,7 @@ docker exec -it kafka-training-kafka kafka-console-producer \
 # Observe: Messages distributed across both consumers
 ```
 
-### Exercise 4: Monitor Consumer Lag
+**Monitor Consumer Lag:**
 
 ```bash
 # Check consumer group details
@@ -777,84 +437,290 @@ docker exec kafka-training-kafka kafka-consumer-groups \
 # - Lag (difference)
 # - Consumer ID
 # - Host
-
-# Or use REST API
-curl http://localhost:8080/api/training/day02/consumer-lag/my-consumer-group | jq
 ```
 
-## EventMart Application
+#### Pure Java Implementation
 
-Apply Day 2 concepts to EventMart:
-
-### Order Processing with Ordering Guarantees
+**At-Least-Once Producer (Raw Kafka API):**
 
 ```java
-@Service
-public class EventMartOrderProducer {
+// Raw Kafka Producer API - no Spring dependencies
+import org.apache.kafka.clients.producer.*;
+import java.util.Properties;
 
-    @Autowired
-    private KafkaTemplate<String, OrderEvent> kafkaTemplate;
+public class AtLeastOnceProducer {
 
-    public void createOrder(Order order) {
-        // Use orderId as key to guarantee order event ordering
-        String key = order.getOrderId();
+    public static void main(String[] args) {
+        // Configure producer
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringSerializer");
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringSerializer");
 
-        // Send order created event
-        sendOrderEvent(key, new OrderCreatedEvent(order));
+        // At-least-once configuration
+        props.put(ProducerConfig.ACKS_CONFIG, "1");
+        props.put(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE);
+        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);
+        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
 
-        // Send payment initiated event
-        sendOrderEvent(key, new PaymentInitiatedEvent(order));
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(props)) {
+            String topic = "user-events";
+            String key = "user1";
+            String value = "{\"action\":\"login\"}";
 
-        // Both events guaranteed to be processed in order
-    }
+            ProducerRecord<String, String> record =
+                new ProducerRecord<>(topic, key, value);
 
-    private void sendOrderEvent(String key, OrderEvent event) {
-        kafkaTemplate.send("eventmart-orders", key, event)
-            .thenAccept(result -> {
-                log.info("Order event sent: partition={}, offset={}",
-                    result.getRecordMetadata().partition(),
-                    result.getRecordMetadata().offset());
+            // Send with callback
+            producer.send(record, (metadata, exception) -> {
+                if (exception != null) {
+                    System.err.println("Failed to send: " + exception.getMessage());
+                } else {
+                    System.out.printf("Sent to partition %d at offset %d%n",
+                        metadata.partition(), metadata.offset());
+                }
             });
+        }
     }
 }
 ```
 
-### Consumer with Manual Offset Management
+**Manual Offset Consumer (Raw Kafka API):**
+
+```java
+// Raw Kafka Consumer API - no Spring dependencies
+import org.apache.kafka.clients.consumer.*;
+import java.time.Duration;
+import java.util.*;
+
+public class ManualOffsetConsumer {
+
+    public static void main(String[] args) {
+        // Configure consumer
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "manual-commit-group");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringDeserializer");
+
+        // Manual offset configuration
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
+            consumer.subscribe(Collections.singletonList("orders"));
+
+            while (true) {
+                ConsumerRecords<String, String> records =
+                    consumer.poll(Duration.ofMillis(100));
+
+                for (ConsumerRecord<String, String> record : records) {
+                    try {
+                        // Process message
+                        processOrder(record.value());
+
+                        // Commit offset after successful processing
+                        Map<TopicPartition, OffsetAndMetadata> offsets = Map.of(
+                            new TopicPartition(record.topic(), record.partition()),
+                            new OffsetAndMetadata(record.offset() + 1)
+                        );
+                        consumer.commitSync(offsets);
+
+                        System.out.printf("Processed and committed offset: %d%n",
+                            record.offset());
+
+                    } catch (Exception e) {
+                        System.err.println("Processing failed, will retry: " + e.getMessage());
+                        // Don't commit - message will be reprocessed
+                    }
+                }
+            }
+        }
+    }
+
+    private static void processOrder(String orderJson) {
+        // Process order logic
+        System.out.println("Processing order: " + orderJson);
+    }
+}
+```
+
+**Location**: `src/main/java/com/training/kafka/Day02DataFlow/`
+
+**Run Pure Java Examples:**
+
+```bash
+# Compile and run
+javac -cp "target/kafka-training-java-1.0.0.jar" \
+  src/main/java/com/training/kafka/Day02DataFlow/AtLeastOnceProducer.java
+
+java -cp target/kafka-training-java-1.0.0.jar \
+  com.training.kafka.Day02DataFlow.AtLeastOnceProducer
+```
+
+### Spring Boot Approach (Java Developer Track - Optional)
+
+> **Java Developer Track Only**
+> The following section uses Spring Boot integration with KafkaTemplate and @KafkaListener annotations. Data engineers should focus on the raw Kafka API examples above.
+
+**At-Least-Once Producer (Spring Boot):**
 
 ```java
 @Service
-public class EventMartOrderConsumer {
+public class AtLeastOnceProducer {
 
     @Autowired
-    private OrderService orderService;
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+    public void sendWithRetries(String topic, String key, String message) {
+        SendResult<String, String> result = kafkaTemplate.send(topic, key, message)
+            .thenApply(sendResult -> {
+                RecordMetadata metadata = sendResult.getRecordMetadata();
+                log.info("Message sent to partition {} at offset {}",
+                    metadata.partition(), metadata.offset());
+                return sendResult;
+            })
+            .exceptionally(ex -> {
+                log.error("Failed to send message", ex);
+                throw new RuntimeException("Send failed", ex);
+            })
+            .join();
+    }
+}
+```
+
+**Manual Commit Consumer (Spring Boot):**
+
+```java
+@Service
+public class ManualCommitConsumer {
 
     @KafkaListener(
-        topics = "eventmart-orders",
-        groupId = "order-processor",
+        topics = "orders",
+        groupId = "manual-commit-group",
         properties = {
             "enable.auto.commit=false"
         }
     )
-    public void processOrder(ConsumerRecord<String, OrderEvent> record,
-                            Acknowledgment acknowledgment) {
+    public void consume(ConsumerRecord<String, String> record,
+                       Acknowledgment acknowledgment) {
         try {
-            OrderEvent event = record.value();
-
-            // Process order event
-            orderService.processEvent(event);
+            // Process message
+            processOrder(record.value());
 
             // Commit offset after successful processing
             acknowledgment.acknowledge();
 
-            log.info("Processed order event: {}", event.getOrderId());
+            log.info("Successfully processed and committed offset {}",
+                record.offset());
 
         } catch (Exception e) {
-            log.error("Failed to process order event", e);
-            // Don't commit - will retry on next poll
+            log.error("Failed to process message, will retry", e);
+            // Don't commit - message will be reprocessed
         }
     }
 }
 ```
+
+### REST API Testing (Java Developer Track - Optional)
+
+> **Java Developer Track Only**
+> For those using the web UI and REST API approach.
+
+**Run Day 2 Demo:**
+
+```bash
+curl -X POST http://localhost:8080/api/training/day02/demo
+```
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "message": "Day 2 data flow demonstration completed",
+  "demonstrations": [
+    "Producer semantics (at-least-once, at-most-once, exactly-once)",
+    "Partitioning strategies (round-robin, key-based)",
+    "Consumer group operations",
+    "Offset management"
+  ]
+}
+```
+
+**Check Consumer Lag:**
+
+```bash
+curl http://localhost:8080/api/training/day02/consumer-lag/my-consumer-group | jq
+```
+
+**Response:**
+
+```json
+{
+  "groupId": "my-consumer-group",
+  "totalLag": 1542,
+  "partitions": [
+    {
+      "partition": 0,
+      "currentOffset": 10000,
+      "endOffset": 10500,
+      "lag": 500
+    },
+    {
+      "partition": 1,
+      "currentOffset": 9800,
+      "endOffset": 10842,
+      "lag": 1042
+    }
+  ]
+}
+```
+
+## Practice Exercises
+
+### Data Engineer Track Exercises
+
+Complete these exercises using pure Kafka CLI tools and Java APIs:
+
+1. **Test Delivery Semantics**: Create producers with different acks configurations and observe behavior
+2. **Partitioning Experiment**: Send messages with and without keys, observe partition assignment
+3. **Consumer Group Scaling**: Start multiple consumers in the same group, observe rebalancing
+4. **Manual Offset Management**: Implement manual offset commit logic
+5. **Monitor Consumer Lag**: Use CLI tools to track consumer lag over time
+
+### Java Developer Track Exercises (Optional)
+
+Complete these exercises using Spring Boot integration:
+
+1. **Spring Boot Producer**: Implement producers with different delivery semantics
+2. **Spring Boot Consumer**: Implement manual commit consumers with error handling
+3. **REST API Testing**: Use the web UI to demonstrate data flow concepts
+4. **EventMart Integration**: Apply concepts to EventMart order processing
+
+**See**: Full exercises in [exercises/day02-exercises.md](../../exercises/day02-exercises.md)
+
+## Learning Track Guidance
+
+### Data Engineer Track
+
+Focus on:
+- Pure Kafka API patterns with Properties configuration
+- CLI tool usage for testing and monitoring
+- Platform-agnostic offset management strategies
+- Consumer group behavior with native tools
+- Understanding Kafka internals without framework abstraction
+
+### Java Developer Track
+
+Additionally explore:
+- Spring Boot integration with KafkaTemplate
+- @KafkaListener annotations and Acknowledgment
+- REST API endpoints for demonstrations
+- Web UI for visualizing data flow
 
 ## Key Takeaways
 
@@ -866,17 +732,6 @@ public class EventMartOrderConsumer {
     5. **Manual offset management** provides precise control over message processing
     6. **Ordering is guaranteed within partitions** but not across partitions
     7. **Consumer lag monitoring** is essential for production systems
-
-## Best Practices
-
-!!! tip "Production Guidelines"
-    - Use **exactly-once semantics** for critical business logic
-    - Implement **key-based partitioning** for ordered message processing
-    - Use **manual commits** with proper error handling
-    - Monitor **consumer lag** to detect processing bottlenecks
-    - Choose **CooperativeStickyAssignor** for incremental rebalancing
-    - Make consumers **idempotent** to handle duplicate messages
-    - Set appropriate **session timeout** and **heartbeat interval**
 
 ## Common Issues & Solutions
 
@@ -896,32 +751,7 @@ public class EventMartOrderConsumer {
 
 **Problem:** Messages processed multiple times.
 
-**Solution:**
-```java
-// Make consumer idempotent
-@Service
-public class IdempotentConsumer {
-
-    @Autowired
-    private ProcessedMessageRepository repository;
-
-    public void consume(ConsumerRecord<String, String> record) {
-        String messageId = extractMessageId(record);
-
-        // Check if already processed
-        if (repository.exists(messageId)) {
-            log.info("Message {} already processed, skipping", messageId);
-            return;
-        }
-
-        // Process message
-        processMessage(record);
-
-        // Mark as processed
-        repository.save(messageId);
-    }
-}
-```
+**Solution:** Make consumers idempotent by tracking processed message IDs.
 
 ### Frequent Rebalancing
 
@@ -938,26 +768,17 @@ max.poll.interval.ms=300000
 # Ensure consumers process quickly
 ```
 
-## Practice Exercises
-
-Ready to practice what you learned? Complete the **[Day 2 Exercises](../exercises/day02-exercises.md)** to apply:
-
-- Delivery semantics (at-least-once, at-most-once, exactly-once)
-- Partitioning strategies (round-robin, key-based)
-- Consumer group operations
-- Offset management
-
-These hands-on exercises will help you master the material before moving forward.
-
 ## Next Steps
 
-Continue to [Day 3: Producers](day03-producers.md) for deep dive into producer patterns and configurations.
+Ready for Day 3? Continue to [Day 3: Producers](day03-producers.md) for deep dive into producer patterns and configurations.
 
-**Related Resources:**
+Or explore:
+
+- **[README-DATA-ENGINEERS.md](../../README-DATA-ENGINEERS.md)** - CLI-first track
+- **[WEB-UI-GETTING-STARTED.md](../../WEB-UI-GETTING-STARTED.md)** - Spring Boot track
 - [Container Development Guide](../containers/testcontainers.md)
 - [API Reference](../api/training-endpoints.md)
-- [Data Flow Architecture](../architecture/data-flow.md)
-- **[All Practice Exercises](../exercises/index.md)** - Progressive challenges for capstone presentation
+- **[All Practice Exercises](../exercises/index.md)** - Progressive challenges
 
 ---
 

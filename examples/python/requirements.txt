@@ -1,0 +1,125 @@
+# Python Kafka Training Dependencies
+# Install all: pip install -r requirements.txt
+
+# ============================================================
+# Core Kafka Libraries
+# ============================================================
+
+# kafka-python: Pure Python Kafka client
+# Used in: day01, day02, day03, day04
+# Good for: Development, learning, moderate loads
+kafka-python==2.0.2
+
+# confluent-kafka: High-performance C-based client
+# Used in: day05 (Avro), day08 (security)
+# Good for: Production, high throughput, Avro support
+confluent-kafka[avro]==2.3.0
+
+# ============================================================
+# Stream Processing
+# ============================================================
+
+# faust-streaming: Python stream processing (Kafka Streams alternative)
+# Used in: day06 (streams)
+# Good for: Real-time stream processing without JVM
+faust-streaming==0.10.15
+
+# robinhood-aiokafka: Async Kafka client (dependency of faust)
+robinhood-aiokafka==1.4.19
+
+# ============================================================
+# HTTP/REST Clients
+# ============================================================
+
+# requests: HTTP library for REST APIs
+# Used in: day07 (Kafka Connect REST API)
+# Good for: Any REST API integration
+requests==2.31.0
+
+# ============================================================
+# Utilities
+# ============================================================
+
+# python-dateutil: Date/time utilities (optional)
+python-dateutil==2.8.2
+
+# ============================================================
+# Development Tools (Optional)
+# ============================================================
+
+# ipython: Better Python REPL for exploration
+# ipython==8.18.1
+
+# black: Code formatter
+# black==23.12.1
+
+# pytest: Testing framework
+# pytest==7.4.3
+
+# ============================================================
+# Installation Instructions
+# ============================================================
+
+# Basic installation (kafka-python only):
+#   pip install kafka-python
+
+# Full installation (all examples):
+#   pip install -r requirements.txt
+
+# Install specific library groups:
+#   pip install kafka-python              # Days 01-04
+#   pip install confluent-kafka[avro]      # Day 05 (Avro)
+#   pip install faust-streaming            # Day 06 (Streams)
+#   pip install requests                   # Day 07 (Connect)
+
+# ============================================================
+# Version Notes
+# ============================================================
+
+# kafka-python 2.0.2:
+#   - Latest stable version
+#   - Supports Kafka 0.10 - 3.x
+#   - Pure Python (no C dependencies)
+
+# confluent-kafka 2.3.0:
+#   - Based on librdkafka (C library)
+#   - Better performance than kafka-python
+#   - Required for Schema Registry / Avro
+#   - Requires C compiler for installation
+
+# faust-streaming 0.10.15:
+#   - Fork of original faust (no longer maintained)
+#   - Active community support
+#   - Compatible with Python 3.7+
+
+# ============================================================
+# Troubleshooting
+# ============================================================
+
+# If confluent-kafka installation fails:
+#   - Install build tools:
+#     - Ubuntu/Debian: sudo apt-get install build-essential python3-dev
+#     - macOS: xcode-select --install
+#     - Windows: Install Visual Studio Build Tools
+
+# If faust-streaming installation fails:
+#   - Ensure Python 3.7+ is being used
+#   - Try: pip install --upgrade pip setuptools wheel
+#   - Then: pip install faust-streaming
+
+# ============================================================
+# Alternative: Using conda
+# ============================================================
+
+# conda create -n kafka-training python=3.11
+# conda activate kafka-training
+# conda install -c conda-forge kafka-python confluent-kafka requests
+# pip install faust-streaming  # Not available in conda
+
+# ============================================================
+# Docker Alternative
+# ============================================================
+
+# If you have Docker, you can use a pre-built image:
+#   docker run -it --network=host python:3.11
+#   pip install kafka-python confluent-kafka[avro] faust-streaming requests

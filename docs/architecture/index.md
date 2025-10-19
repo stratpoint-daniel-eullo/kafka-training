@@ -2,7 +2,10 @@
 
 ## Overview
 
-The Kafka Training application is a container-first, microservices-ready Spring Boot platform designed to teach Apache Kafka concepts through hands-on practice.
+The Kafka Training platform is a container-first environment designed to teach Apache Kafka concepts through hands-on practice with pure APIs and CLI tools.
+
+!!! tip "Platform Architecture"
+    The architecture supports **both learning tracks**: pure Kafka fundamentals (recommended for data engineers) and Spring Boot integration (optional for Java developers).
 
 ```mermaid
 graph TB

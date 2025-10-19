@@ -1,5 +1,11 @@
 # Getting Started with the Kafka Training Web UI
 
+> **Java Developer Track Only**
+>
+> This guide is for the **Spring Boot integration track**. If you're a data engineer looking for CLI-based, platform-agnostic Kafka training, see [README-DATA-ENGINEERS.md](./README-DATA-ENGINEERS.md).
+>
+> **Choose your track**: [START-HERE.md](./START-HERE.md)
+
 ## Quick Start
 
 ### 1. Access the Web Interface

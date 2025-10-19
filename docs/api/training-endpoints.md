@@ -1,5 +1,8 @@
 # Training API Endpoints
 
+> **⚠️ Java Developer Track Only**
+> REST API endpoints for Spring Boot web interface. Data engineers use CLI: `./bin/kafka-training-cli.sh` or pure Java examples.
+
 Complete reference for all 40+ training REST API endpoints.
 
 ## Day 1: Foundation & Admin API

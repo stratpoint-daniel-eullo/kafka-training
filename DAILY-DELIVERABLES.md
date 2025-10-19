@@ -1,8 +1,11 @@
 # EventMart Daily Deliverables & Demo Requirements
 
+> **⚠️ Java Developer Track Only**
+> This guide is for the EventMart progressive project (Spring Boot). Data engineers follow the pure Kafka curriculum in [README-DATA-ENGINEERS.md](./README-DATA-ENGINEERS.md) and focus on CLI tools and platform-agnostic patterns.
+
 ## 📋 Overview
 
-Each day of the Kafka training builds upon the previous day's work, creating a complete EventMart e-commerce platform. Trainees must deliver specific components and demonstrate their functionality.
+Each day of the Kafka training builds upon the previous day's work, creating a complete EventMart e-commerce platform using Spring Boot. This is the Java Developer track project.
 
 ---
 

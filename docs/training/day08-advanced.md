@@ -1,5 +1,8 @@
 # Day 8: Advanced Topics and Production
 
+> **Primary Audience:** Data Engineers
+> **Learning Track:** Platform-agnostic Kafka security, monitoring, and production configuration. Spring Boot integration for Actuator metrics is optional.
+
 ## Learning Objectives
 
 By the end of Day 8, you will:
@@ -12,7 +15,293 @@ By the end of Day 8, you will:
 - [ ] Implement production best practices
 - [ ] Troubleshoot common production issues
 
-## Security
+## Production Example: SecurityConfig.java
+
+> **See Working Example**: `src/main/java/com/training/kafka/Day08Advanced/SecurityConfig.java`
+
+This project includes production-ready security configurations demonstrating:
+- SSL/TLS encryption setup
+- SASL authentication (PLAIN, SCRAM, OAuth)
+- Combined SSL + SASL for production
+- ACL configuration examples
+- Security best practices
+
+### SSL/TLS Configuration from Actual Code
+
+From `SecurityConfig.java:28-51`:
+
+```java
+public static Properties getSslConfig(String keystorePath, String keystorePassword,
+                                     String truststorePath, String truststorePassword) {
+    Properties props = new Properties();
+
+    // SSL Configuration
+    props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+    props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, keystorePath);
+    props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, keystorePassword);
+    props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, keystorePassword);
+    props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, truststorePath);
+    props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, truststorePassword);
+
+    // SSL Protocol and cipher suites
+    props.put(SslConfigs.SSL_PROTOCOL_CONFIG, "TLSv1.3");
+    props.put(SslConfigs.SSL_ENABLED_PROTOCOLS_CONFIG, "TLSv1.3,TLSv1.2");
+    props.put(SslConfigs.SSL_CIPHER_SUITES_CONFIG,
+        "TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_128_GCM_SHA256");
+
+    // SSL endpoint identification
+    props.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "https");
+
+    return props;
+}
+```
+
+### SASL/SCRAM Configuration from Actual Code
+
+From `SecurityConfig.java:72-83`:
+
+```java
+public static Properties getSaslScramConfig(String username, String password) {
+    Properties props = new Properties();
+
+    props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
+    props.put(SaslConfigs.SASL_MECHANISM, "SCRAM-SHA-512");
+    props.put(SaslConfigs.SASL_JAAS_CONFIG,
+        String.format("org.apache.kafka.common.security.scram.ScramLoginModule required " +
+                     "username=\"%s\" password=\"%s\";", username, password));
+
+    return props;
+}
+```
+
+### Production Security Configuration (SSL + SASL)
+
+From `SecurityConfig.java:110-135`:
+
+```java
+public static Properties getProductionSecurityConfig(String keystorePath, String keystorePassword,
+                                                    String truststorePath, String truststorePassword,
+                                                    String username, String password) {
+    Properties props = new Properties();
+
+    // Combine SSL and SASL
+    props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
+
+    // SSL Configuration
+    props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, keystorePath);
+    props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, keystorePassword);
+    props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, keystorePassword);
+    props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, truststorePath);
+    props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, truststorePassword);
+    props.put(SslConfigs.SSL_PROTOCOL_CONFIG, "TLSv1.3");
+    props.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "https");
+
+    // SASL Configuration
+    props.put(SaslConfigs.SASL_MECHANISM, "SCRAM-SHA-512");
+    props.put(SaslConfigs.SASL_JAAS_CONFIG,
+        String.format("org.apache.kafka.common.security.scram.ScramLoginModule required " +
+                     "username=\"%s\" password=\"%s\";", username, password));
+
+    return props;
+}
+```
+
+**Run the Example:**
+
+```bash
+# From project root
+mvn exec:java -Dexec.mainClass="com.training.kafka.Day08Advanced.SecurityConfig"
+```
+
+## Python Kafka Security Configuration
+
+For data engineers using Python, here's how to configure secure Kafka connections:
+
+### Python SSL/TLS Configuration
+
+**Complete Example**: `examples/python/day08_security.py`
+
+```bash
+# Install required library
+pip install kafka-python
+
+# Run the security demo
+python examples/python/day08_security.py
+```
+
+**Key code from day08_security.py:**
+
+```python
+# SSL/TLS Configuration (kafka-python)
+# Compare to Java: Similar to setting ssl.truststore.location, ssl.keystore.location in Java
+ssl_config = {
+    'bootstrap_servers': 'localhost:9093',
+    'security_protocol': 'SSL',
+    'ssl_cafile': '/path/to/ca-cert',        # Java: ssl.truststore.location
+    'ssl_certfile': '/path/to/client-cert',  # Java: ssl.keystore.location
+    'ssl_keyfile': '/path/to/client-key',
+    'ssl_check_hostname': True,
+    'acks': 'all',
+    'retries': 3
+}
+
+producer = KafkaProducer(**ssl_config)
+```
+
+**Note**: For production use with Avro/Schema Registry, use `confluent-kafka` library (also shown in day08_security.py).
+
+### Python SASL/PLAIN Authentication
+
+**From day08_security.py:**
+
+```python
+# SASL/PLAIN Configuration (kafka-python)
+# Compare to Java: Similar to setting sasl.mechanism, sasl.jaas.config in Java
+sasl_plain_config = {
+    'bootstrap_servers': 'localhost:9094',
+    'security_protocol': 'SASL_PLAINTEXT',  # Use SASL_SSL in production
+    'sasl_mechanism': 'PLAIN',               # Java: sasl.mechanism
+    'sasl_plain_username': 'kafka-user',     # Java: username in jaas.config
+    'sasl_plain_password': 'kafka-password', # Java: password in jaas.config
+    'acks': 'all'
+}
+
+producer = KafkaProducer(**sasl_plain_config)
+```
+
+**⚠️ Security Warning**: SASL/PLAIN with `SASL_PLAINTEXT` transmits credentials in plaintext. Always use `SASL_SSL` in production environments.
+
+### Python SASL/SCRAM-SHA-512 Authentication (Recommended)
+
+**From day08_security.py:**
+
+```python
+# SASL/SCRAM-SHA-512 Configuration (kafka-python) - RECOMMENDED for production
+# Compare to Java: Similar to setting sasl.mechanism=SCRAM-SHA-512 in Java
+sasl_scram_config = {
+    'bootstrap_servers': 'localhost:9094',
+    'security_protocol': 'SASL_SSL',           # Combines SASL authentication + SSL encryption
+    'sasl_mechanism': 'SCRAM-SHA-512',         # Java: sasl.mechanism
+    'sasl_plain_username': 'kafka-user',       # Java: username in jaas.config
+    'sasl_plain_password': 'strong-password',  # Java: password in jaas.config
+    'ssl_cafile': '/path/to/ca-cert',          # Java: ssl.truststore.location
+    'ssl_check_hostname': True,
+    'acks': 'all',
+    'retries': 3
+}
+
+producer = KafkaProducer(**sasl_scram_config)
+consumer = KafkaConsumer('secure-topic', group_id='scram-group', **sasl_scram_config)
+```
+
+**✅ Best Practice**: SCRAM-SHA-512 is recommended over PLAIN because:
+- Credentials are never transmitted in plaintext
+- Server doesn't store plaintext passwords
+- Protection against replay attacks
+
+### Complete Python Security Configuration
+
+**From day08_security.py** - Using `confluent-kafka` for production:
+
+```python
+from confluent_kafka import Producer, Consumer
+import os
+
+# Production-grade configuration using environment variables
+# Compare to Java: Similar to creating Properties object with security configs
+confluent_producer_config = {
+    'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094'),
+    'security.protocol': 'SASL_SSL',           # Java: security.protocol
+    'sasl.mechanism': 'SCRAM-SHA-512',         # Java: sasl.mechanism
+    'sasl.username': os.getenv('KAFKA_USERNAME', 'kafka-user'),
+    'sasl.password': os.getenv('KAFKA_PASSWORD', 'strong-password'),
+    'ssl.ca.location': '/path/to/ca-cert',     # Java: ssl.truststore.location
+    'acks': 'all',                              # Java: acks
+    'retries': 3,                               # Java: retries
+    'enable.idempotence': True                  # Java: enable.idempotence
+}
+
+producer = Producer(confluent_producer_config)
+producer.produce('secure-topic', value='Secure message')
+producer.flush()
+
+# Consumer configuration
+confluent_consumer_config = {
+    **confluent_producer_config,
+    'group.id': 'secure-consumer-group',        # Java: group.id
+    'auto.offset.reset': 'earliest'             # Java: auto.offset.reset
+}
+
+consumer = Consumer(confluent_consumer_config)
+consumer.subscribe(['secure-topic'])
+```
+
+**Environment Variables** (store in `.env` file):
+```bash
+export KAFKA_BOOTSTRAP_SERVERS=kafka-broker1:9094,kafka-broker2:9094
+export KAFKA_USERNAME=data-engineer
+export KAFKA_PASSWORD=secure-password
+```
+
+**✅ Best Practice**: Use `confluent-kafka` for production because:
+- C-based implementation (faster than pure Python)
+- Better error handling and connection management
+- Supports Avro with Schema Registry
+- Industry-standard for production Python Kafka applications
+
+### Python ACL Management
+
+**Note**: ACL management in Python is primarily done through the Kafka broker's CLI tools (`kafka-acls.sh`) or Java admin APIs. The `kafka-python` library has limited ACL support. For production ACL management, use:
+
+1. **Kafka CLI Tools** (recommended):
+```bash
+# Grant WRITE permission to producer
+kafka-acls.sh --bootstrap-server localhost:9094 \
+  --command-config admin.properties \
+  --add --allow-principal User:producer-user \
+  --operation WRITE --topic production-events
+
+# Grant READ permissions to consumer
+kafka-acls.sh --bootstrap-server localhost:9094 \
+  --command-config admin.properties \
+  --add --allow-principal User:consumer-user \
+  --operation READ --topic production-events \
+  --group consumer-group-1
+```
+
+2. **Python REST API Client** (for programmatic management):
+```python
+# Use Kafka REST Proxy or custom admin REST API
+# See examples/python/day07_connect_client.py for REST API patterns
+import requests
+
+def create_acl(principal, topic, operation):
+    """Create ACL via REST API or Kafka Admin protocol"""
+    # Implementation depends on your Kafka admin infrastructure
+    pass
+```
+
+**Python Security Installation:**
+
+```bash
+# For kafka-python (SSL/SASL support)
+pip install kafka-python
+
+# For confluent-kafka (production-grade with Avro)
+pip install confluent-kafka[avro]
+```
+
+**Python Security Benefits:**
+- **Same Security Model**: Uses same SSL/TLS and SASL mechanisms as Java
+- **Platform-Agnostic**: Python apps can securely connect to any Kafka cluster
+- **Production-Ready**: Full support for SCRAM-SHA-512, SSL encryption, and authentication
+- **Data Engineering Integration**: Secure Kafka connections work seamlessly with:
+  - Apache Airflow for workflow orchestration
+  - PySpark for distributed data processing
+  - Pandas for data analysis
+  - Jupyter notebooks for data exploration
+
+## Security (Platform-Agnostic Concepts)
 
 ### SSL/TLS Encryption
 

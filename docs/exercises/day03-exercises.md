@@ -1,6 +1,10 @@
 # Day 3 Exercises: Producer Development
 
-## Exercise 1: Simple Producer Implementation
+> **Learning Tracks:** These exercises focus on pure Kafka Producer API patterns for platform-agnostic skills. Data engineers should complete all exercises.
+
+## Data Engineer Track Exercises (Recommended)
+
+### Exercise 1: Simple Producer Implementation - Pure Kafka API
 
 ### Objective
 Master basic producer configuration and understand message sending patterns.
@@ -44,7 +48,7 @@ Master basic producer configuration and understand message sending patterns.
 
 ---
 
-## Exercise 2: Advanced Producer Features
+### Exercise 2: Advanced Producer Features - Error Handling & Metrics
 
 ### Objective
 Explore advanced producer configurations and error handling.
@@ -82,7 +86,7 @@ Explore advanced producer configurations and error handling.
 
 ---
 
-## Exercise 3: Producer Configuration Tuning
+### Exercise 3: Producer Configuration Tuning - Performance Optimization
 
 ### Objective
 Learn how different configurations affect producer behavior.
@@ -127,7 +131,7 @@ Learn how different configurations affect producer behavior.
 
 ---
 
-## Exercise 4: Error Handling and Reliability
+### Exercise 4: Error Handling and Reliability - Production Patterns
 
 ### Objective
 Implement robust error handling patterns for production use.
@@ -184,7 +188,7 @@ Implement robust error handling patterns for production use.
 
 ---
 
-## Exercise 5: Monitoring and Metrics
+### Exercise 5: Monitoring and Metrics - JMX & Client Metrics
 
 ### Objective
 Implement comprehensive producer monitoring.
@@ -230,7 +234,7 @@ Implement comprehensive producer monitoring.
 
 ---
 
-## Exercise 6: Production Best Practices
+### Exercise 6: Production Best Practices - Resource Management
 
 ### Objective
 Implement producer patterns suitable for production environments.
@@ -374,9 +378,43 @@ props.put(ProducerConfig.LINGER_MS_CONFIG, 100); // 100ms batching
 props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "lz4"); // Fast compression
 ```
 
+## Java Developer Track Exercises (Optional)
+
+> **Java Developer Track Only**
+>
+> The exercises above use pure Kafka Producer API. For Spring Boot integration:
+
+### Spring Kafka Producer Examples
+
+1. **KafkaTemplate Usage**
+    ```bash
+    # Review Spring Boot producer service
+    cat src/main/java/com/training/kafka/services/Day03ProducerService.java
+    ```
+
+2. **Spring Boot REST API**
+    ```bash
+    # Start Spring Boot application
+    mvn spring-boot:run
+
+    # Send via REST endpoint
+    curl -X POST http://localhost:8080/api/training/day03/send \
+      -H "Content-Type: application/json" \
+      -d '{"topic":"test","key":"k1","value":"v1"}'
+    ```
+
+3. **Spring Configuration**
+    - KafkaTemplate auto-configuration
+    - Properties from application.yml
+    - Transaction support with @Transactional
+
+**Note:** KafkaTemplate is a wrapper around KafkaProducer. Understanding the core API from Data Engineer exercises is crucial for advanced use cases.
+
+---
+
 ## Key Learning Outcomes
 
-After completing these exercises, you should understand:
+After completing the Data Engineer track exercises, you should understand:
 
 1. **Producer Patterns**: Sync vs async vs fire-and-forget
 2. **Configuration Impact**: How settings affect throughput and latency

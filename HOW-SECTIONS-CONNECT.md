@@ -1,14 +1,17 @@
 # How All Sections Connect Together
 
+> **Both Tracks:** This guide applies to both Data Engineer and Java Developer tracks. Core Kafka concepts connect the same way regardless of implementation.
+
 ## The Big Picture
 
 Think of it like building a house:
-- **Day 1-2**: Foundation (infrastructure)
-- **Day 3-4**: Walls (basic messaging)
-- **Day 5**: Plumbing (data flows)
-- **Day 6-7**: Electrical & HVAC (advanced features)
+- **Day 1-2**: Foundation (infrastructure - topics, partitions)
+- **Day 3-4**: Walls (producers and consumers)
+- **Day 5**: Plumbing (stream processing)
+- **Day 6-7**: Electrical & HVAC (schemas, connectors)
 - **Day 8**: Security system (production ready)
-- **EventMart**: The complete furnished house!
+- **EventMart** (Java Track): Complete Spring Boot application
+- **Pure Kafka** (Data Engineer Track): Platform-agnostic patterns
 
 ## Visual Connection Flow
 

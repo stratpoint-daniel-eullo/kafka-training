@@ -1,5 +1,8 @@
 # EventMart API Reference
 
+> **⚠️ Java Developer Track Only**
+> EventMart is a Spring Boot project for Java developers. Data engineers focus on pure Kafka patterns in the core training.
+
 EventMart is the e-commerce platform demonstrating real-world Kafka integration.
 
 ## Domain Events

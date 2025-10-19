@@ -1,6 +1,10 @@
 # Day 5 Exercises: Stream Processing with Kafka Streams
 
-## Exercise 1: Basic Stream Processing
+> **Learning Tracks:** These exercises focus on pure Kafka Streams API for platform-agnostic stream processing. Data engineers should complete all exercises.
+
+## Data Engineer Track Exercises (Recommended)
+
+### Exercise 1: Basic Stream Processing - Kafka Streams DSL
 
 ### Objective
 Learn fundamental stream processing concepts with Kafka Streams.
@@ -64,7 +68,7 @@ docker-compose exec kafka kafka-topics --create --topic word-count-output --
 
 ---
 
-## Exercise 2: Word Count Stream Application
+### Exercise 2: Word Count Stream Application - Classic Example
 
 ### Objective
 Build a classic word count application using Kafka Streams.
@@ -584,9 +588,41 @@ Materialized.<String, Long, WindowStore<Bytes, byte[]>>as("windowed-store")
     .withRetention(Duration.ofHours(24));
 ```
 
+## Java Developer Track Exercises (Optional)
+
+> **Java Developer Track Only**
+>
+> Kafka Streams is already a pure Java API. Spring Boot can provide additional integration:
+
+### Spring Boot Streams Integration
+
+1. **Spring Cloud Stream with Kafka Binder**
+    - Higher-level abstraction over Kafka Streams
+    - Annotation-based stream processing
+    - Spring Boot auto-configuration
+
+2. **Review Service Integration**
+    ```bash
+    # Review Spring Boot streams service
+    cat src/main/java/com/training/kafka/services/Day05StreamsService.java
+    ```
+
+3. **REST API for Streams**
+    ```bash
+    # Start Spring Boot application
+    mvn spring-boot:run
+
+    # Query stream state via REST
+    curl http://localhost:8080/api/training/day05/streams/state
+    ```
+
+**Note:** Kafka Streams is already Java-native. Spring Boot mainly adds convenience wrappers and REST endpoints. The core Streams DSL knowledge from Data Engineer track applies directly.
+
+---
+
 ## Key Learning Outcomes
 
-After completing these exercises, you should understand:
+After completing the Data Engineer track exercises, you should understand:
 
 1. **Stream Processing Fundamentals**: Real-time vs batch processing
 2. **Kafka Streams DSL**: High-level API for stream transformations

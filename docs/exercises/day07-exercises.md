@@ -1,6 +1,10 @@
 # Day 7 Exercises: Kafka Connect Integration
 
-## Exercise 1: File Source and Sink Connectors
+> **Learning Tracks:** These exercises focus on Kafka Connect REST API - platform-agnostic integration patterns. Data engineers should complete all exercises.
+
+## Data Engineer Track Exercises (Recommended)
+
+### Exercise 1: File Source and Sink Connectors - REST API
 
 ### Objective
 Set up basic file-based data integration using Kafka Connect connectors.
@@ -57,7 +61,7 @@ echo "2024-01-01,user1,logout,192.168.1.100" >> /tmp/kafka-connect-data/user-act
 
 ---
 
-## Exercise 2: Connector Management with REST API
+### Exercise 2: Connector Management with REST API - CRUD Operations
 
 ### Objective
 Learn to manage connectors programmatically using the REST API.
@@ -94,7 +98,7 @@ Learn to manage connectors programmatically using the REST API.
 
 ---
 
-## Exercise 3: Data Transformation with SMTs
+### Exercise 3: Data Transformation with SMTs - Single Message Transforms
 
 ### Objective
 Apply Single Message Transforms (SMTs) to modify data during transit.
@@ -138,7 +142,7 @@ EOF
 
 ---
 
-## Exercise 4: Error Handling and Dead Letter Queues
+### Exercise 4: Error Handling and Dead Letter Queues - Fault Tolerance
 
 ### Objective
 Implement robust error handling with dead letter queues.
@@ -193,9 +197,42 @@ EOF
 
 ---
 
+## Java Developer Track Exercises (Optional)
+
+> **Java Developer Track Only**
+>
+> Kafka Connect uses REST API (platform-agnostic). Spring Boot can add management features:
+
+### Spring Boot Connect Integration
+
+1. **Connector Manager Service**
+    ```bash
+    # Review Spring Boot Connect service
+    cat src/main/java/com/training/kafka/services/Day07ConnectService.java
+    ```
+
+2. **REST API Wrapper**
+    ```bash
+    # Start Spring Boot application
+    mvn spring-boot:run
+
+    # Manage connectors via Spring REST endpoints
+    curl http://localhost:8080/api/training/day07/connectors
+    ```
+
+3. **Additional Features**
+    - REST client abstraction
+    - Error handling
+    - Health checks
+    - Monitoring endpoints
+
+**Note:** Kafka Connect is managed via its own REST API. Spring Boot mainly provides wrapper services. The core Connect REST API skills from Data Engineer track are essential.
+
+---
+
 ## Key Learning Outcomes
 
-After completing these exercises, you should understand:
+After completing the Data Engineer track exercises, you should understand:
 
 1. **Connector Basics**: Source vs sink connectors
 2. **REST API**: Complete connector management lifecycle

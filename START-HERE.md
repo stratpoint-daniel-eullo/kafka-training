@@ -1,42 +1,128 @@
 # START HERE - Kafka Training Quick Start
 
-## TL;DR (Too Long; Didn't Read)
+## Choose Your Track
 
+This training serves **two distinct audiences**:
+
+### Data Engineer Track (RECOMMENDED)
+
+**For**: Data engineers, platform engineers, data pipeline developers
+
+**Focus**: Pure Kafka fundamentals, CLI-first, platform-agnostic
+
+**Quick Start**:
 ```bash
 # 1. Start Kafka
 docker-compose up -d
 
-# 2. Start Application
+# 2. Run CLI examples
+./bin/kafka-training-cli.sh --day 1 --demo foundation
+./bin/kafka-training-cli.sh --day 3 --demo producer
+./bin/kafka-training-cli.sh --day 4 --demo consumer
+
+# 3. Or run Java directly
+java -cp target/kafka-training-java-1.0.0.jar \
+  com.training.kafka.Day03Producers.AdvancedProducer
+```
+
+**Documentation**: See [README-DATA-ENGINEERS.md](./README-DATA-ENGINEERS.md)
+
+---
+
+### Java Developer Track (Alternative)
+
+**For**: Java/Spring Boot developers building microservices
+
+**Focus**: Spring Boot integration, web UI, REST APIs
+
+**Quick Start**:
+```bash
+# 1. Start Kafka
+docker-compose up -d
+
+# 2. Start Spring Boot Application
 mvn spring-boot:run
 
 # 3. Open Browser
 http://localhost:8080
 
-# 4. Click any "Run Demo" button and watch it work!
+# 4. Click "Run Demo" buttons
 ```
 
-## What This Application Does
+**Documentation**: See [WEB-UI-GETTING-STARTED.md](./WEB-UI-GETTING-STARTED.md)
 
-It's an **interactive Kafka learning platform**. Each section teaches you a Kafka concept by letting you click buttons and see what happens.
+---
 
 ## The 3 Most Important Things to Know
 
-### 1. **Topics = Mailboxes**
+### 1. Topics = Mailboxes
    - Day 1 creates mailboxes
    - Day 3 puts letters IN mailboxes
    - Day 4 takes letters OUT of mailboxes
 
-### 2. **Everything connects through Topics**
+### 2. Everything connects through Topics
    ```
-   Day 3 sends → Topic "user-events" → Day 4 receives
+   Producer sends → Topic "user-events" → Consumer receives
    ```
 
-### 3. **Start with "Run Demo"**
-   Every section has a "Run Demo" button. Just click it and see what happens!
+### 3. Two Ways to Learn
+   - **CLI-First (Data Engineer Track)**: Direct Kafka APIs, language-agnostic
+   - **Spring Boot (Java Track)**: Framework integration, web interface
 
-## 5-Minute Getting Started
+## Quick Comparison
 
-### Step 1: Simple Test (2 minutes)
+| Aspect | Data Engineer Track | Java Developer Track |
+|--------|---------------------|----------------------|
+| **Entry Point** | CLI commands | Web browser |
+| **Code Examples** | Pure Kafka APIs | Spring Boot services |
+| **Run Command** | `./bin/kafka-training-cli.sh` | `mvn spring-boot:run` |
+| **Language Focus** | Platform-agnostic | Java/Spring-specific |
+| **Use Cases** | Data pipelines, ETL | Microservices, web apps |
+
+## 5-Minute Getting Started (Data Engineer Track)
+
+### Step 1: Create a Topic (2 minutes)
+```bash
+# Using CLI
+./bin/kafka-training-cli.sh create-topic \
+  --name my-first-topic \
+  --partitions 3
+
+# Or using native Kafka tools
+docker exec kafka-training-kafka kafka-topics \
+  --bootstrap-server localhost:9092 \
+  --create --topic my-first-topic \
+  --partitions 3 --replication-factor 1
+```
+
+### Step 2: Send Messages (2 minutes)
+```bash
+# Using CLI
+./bin/kafka-training-cli.sh produce \
+  --topic my-first-topic \
+  --key user-1 \
+  --value "Hello Kafka!"
+
+# Or run pure Java producer
+java -cp target/kafka-training-java-1.0.0.jar \
+  com.training.kafka.Day03Producers.SimpleProducer
+```
+
+### Step 3: Consume Messages (1 minute)
+```bash
+# Using CLI
+./bin/kafka-training-cli.sh consume \
+  --topic my-first-topic \
+  --group my-consumer-group
+
+# Or run pure Java consumer
+java -cp target/kafka-training-java-1.0.0.jar \
+  com.training.kafka.Day04Consumers.SimpleConsumer
+```
+
+## Alternative: 5-Minute Getting Started (Java Developer Track)
+
+### Step 1: Create a Topic (2 minutes)
 ```
 1. Go to http://localhost:8080
 2. Find "Day 1: Kafka Fundamentals"
@@ -44,20 +130,18 @@ It's an **interactive Kafka learning platform**. Each section teaches you a Kafk
 4. See success message ✓
 ```
 
-### Step 2: Send & Receive (2 minutes)
+### Step 2: Send Messages (2 minutes)
 ```
 1. Find "Day 3: Message Producers"
 2. Click "Send" (use default values)
-3. Find "Day 4: Message Consumers"
-4. Click "Consume Messages"
-5. Check your terminal - you'll see the message!
+3. See success message
 ```
 
-### Step 3: Try EventMart (1 minute)
+### Step 3: Consume Messages (1 minute)
 ```
-1. Scroll to bottom: "EventMart Progressive Project"
-2. Click "Run Full Demo"
-3. Watch your terminal logs - complete e-commerce simulation!
+1. Find "Day 4: Message Consumers"
+2. Click "Consume Messages"
+3. Check terminal logs to see messages
 ```
 
 ## The Sections Explained (One Sentence Each)
@@ -70,7 +154,6 @@ It's an **interactive Kafka learning platform**. Each section teaches you a Kafk
 - **Day 6**: Adds data quality checks (schemas)
 - **Day 7**: Connects Kafka to databases
 - **Day 8**: Makes everything secure and monitored
-- **EventMart**: Real e-commerce app using ALL concepts
 
 ## How They Connect
 
@@ -88,22 +171,21 @@ Day 5: Processes "Hello" → outputs to "processed-events"
 
 ## Most Common Questions
 
+### Q: Which track should I choose?
+A:
+- **Data Engineer?** Choose CLI-first track (README-DATA-ENGINEERS.md)
+- **Java Developer?** Choose Spring Boot track (WEB-UI-GETTING-STARTED.md)
+- **Not sure?** Start with Data Engineer track - it's more fundamental
+
 ### Q: Where do I see results?
-A: Two places:
-1. **Green/red boxes** below each section in the web UI
-2. **Terminal logs** where you ran `mvn spring-boot:run`
+A:
+- **CLI Track**: Terminal output where you ran commands
+- **Spring Boot Track**: Green/red boxes in web UI + terminal logs
 
 ### Q: What should I do first?
-A: Click "Run Demo" buttons in order: Day 1 → Day 2 → Day 3 → Day 4
-
-### Q: What's the most fun thing to try?
-A: EventMart! Scroll to bottom, click "Run Full Demo"
-
-### Q: I clicked something and got an error
-A: Check if:
-- Kafka is running: `docker ps` (should see kafka containers)
-- The topic exists (create it in Day 1 first)
-- You're looking at terminal logs for details
+A:
+- **CLI Track**: Run CLI demos in order: Day 1 → Day 3 → Day 4
+- **Spring Boot Track**: Click "Run Demo" buttons in order
 
 ### Q: What's a topic again?
 A: A topic is like a folder that holds messages. Think of it as:
@@ -111,44 +193,51 @@ A: A topic is like a folder that holds messages. Think of it as:
 - A chat channel
 - A message queue
 
-## Quick Reference Card
-
-| I want to... | Go to... | Click... |
-|--------------|----------|----------|
-| Create a place to store messages | Day 1 | Create Topic |
-| Send a message | Day 3 | Send |
-| Read messages | Day 4 | Consume Messages |
-| See real-time processing | Day 5 | Start (any stream) |
-| Try complete example | EventMart | Run Full Demo |
-| See what's available | Day 1 | List Topics |
-
 ## Learning Path
 
-### Absolute Beginner (10 minutes)
+### Data Engineer Track (Recommended for Production Skills)
 ```
-1. Day 1: Click "Run Demo"
-2. Day 3: Click "Run Demo"
-3. Day 4: Click "Run Demo"
-4. Done! You understand Kafka basics.
-```
-
-### Want to Understand More (30 minutes)
-```
-1-8. Click "Run Demo" on every section (Day 1 through Day 8)
-9. Read terminal logs to see what's happening
-10. Done! You understand advanced Kafka.
+1. Read README-DATA-ENGINEERS.md
+2. Run CLI demos (Day 1 → Day 3 → Day 4)
+3. Study pure Kafka code examples
+4. Build data pipelines with raw Kafka APIs
+5. Integrate with Spark/Flink/Airflow
 ```
 
-### Want to Build Something (1 hour)
+### Java Developer Track (Recommended for Microservices)
 ```
-1. Try EventMart: Click "Run Full Demo"
-2. Try creating custom users/products/orders
-3. Try modifying the code
-4. Done! You can build Kafka applications.
+1. Read WEB-UI-GETTING-STARTED.md
+2. Click "Run Demo" on Day 1 through Day 8
+3. Study Spring Boot service code
+4. Build EventMart project
+5. Create REST API services
 ```
 
-## The Only 3 Commands You Need
+### Hybrid Approach
+```
+1. Start with CLI Track to learn fundamentals
+2. Then explore Spring Boot Track for framework integration
+3. Understand both pure Kafka AND Spring abstractions
+```
 
+## The Only Commands You Need
+
+### Data Engineer Track
+```bash
+# Start everything
+docker-compose up -d
+
+# Run examples
+./bin/kafka-training-cli.sh --day <N> --demo <name>
+
+# Or run Java directly
+java -cp target/kafka-training-java-1.0.0.jar <MainClass>
+
+# Stop everything
+docker-compose down
+```
+
+### Java Developer Track
 ```bash
 # Start everything
 docker-compose up -d && mvn spring-boot:run
@@ -156,29 +245,40 @@ docker-compose up -d && mvn spring-boot:run
 # Stop everything
 Ctrl+C (in terminal)
 docker-compose down
-
-# See logs
-# Just look at the terminal where you ran mvn spring-boot:run
 ```
+
+## Quick Reference Card
+
+| I want to... | Data Engineer Track | Java Developer Track |
+|--------------|---------------------|----------------------|
+| Create topic | `./bin/kafka-training-cli.sh create-topic` | Click "Create Topic" in Day 1 |
+| Send message | `./bin/kafka-training-cli.sh produce` | Click "Send" in Day 3 |
+| Read messages | `./bin/kafka-training-cli.sh consume` | Click "Consume Messages" in Day 4 |
+| See examples | `java -cp target/*.jar <MainClass>` | Click "Run Demo" buttons |
+| Learn concepts | Read `docs/training/dayXX-*.md` | Read `docs/training/dayXX-*.md` |
 
 ## That's It!
 
-Really, that's all you need to know to get started. Just:
-1. Open http://localhost:8080
-2. Click "Run Demo" buttons
-3. Watch what happens in your terminal
+Really, that's all you need to know to get started. Choose your track and dive in:
 
-The rest will make sense as you explore!
+**Data Engineers**: Start with [README-DATA-ENGINEERS.md](./README-DATA-ENGINEERS.md)
+
+**Java Developers**: Start with [WEB-UI-GETTING-STARTED.md](./WEB-UI-GETTING-STARTED.md)
 
 ---
 
-## If You Want More Details
+## Additional Documentation
 
-All the detailed docs are in these files:
-- `WEB-UI-GETTING-STARTED.md` - Detailed UI walkthrough
-- `HOW-SECTIONS-CONNECT.md` - Deep dive on connections
-- `CONTAINER-FIRST-QUICKSTART.md` - Docker setup details
-- `WHATS-WORKING-NOW.md` - Technical status
-- `FIXES-APPLIED.md` - What was fixed
+### Core Documentation
+- **[README-DATA-ENGINEERS.md](./README-DATA-ENGINEERS.md)** - CLI-first, pure Kafka track
+- **[README.md](./README.md)** - Spring Boot integration track
+- **[GETTING-STARTED.md](./GETTING-STARTED.md)** - Detailed setup guide
+- **[LEARNING-PATHS.md](./LEARNING-PATHS.md)** - Track comparison
 
-**But honestly? You don't need them. Just use this file and start clicking buttons!** 😊
+### Specialized Guides
+- **[WEB-UI-GETTING-STARTED.md](./WEB-UI-GETTING-STARTED.md)** - Web interface (Java track)
+- **[EVENTMART-PROJECT-GUIDE.md](./EVENTMART-PROJECT-GUIDE.md)** - Progressive project (Java track)
+- **[HOW-SECTIONS-CONNECT.md](./HOW-SECTIONS-CONNECT.md)** - Architecture overview
+- **[CONTAINER-FIRST-QUICKSTART.md](./CONTAINER-FIRST-QUICKSTART.md)** - Docker setup
+
+**Pro Tip**: The CLI-first track teaches you transferable Kafka skills that work with ANY language or platform!

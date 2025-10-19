@@ -1,6 +1,10 @@
 # Day 8 Exercises: Advanced Security and Monitoring
 
-## Exercise 1: SSL/TLS Security Configuration
+> **Learning Tracks:** These exercises focus on platform-agnostic Kafka security and monitoring using CLI tools, configuration files, and Java APIs. Data engineers should complete all exercises.
+
+## Data Engineer Track Exercises (Recommended)
+
+### Exercise 1: SSL/TLS Security Configuration - Certificate Management
 
 ### Objective
 Implement SSL/TLS encryption for secure Kafka communication.
@@ -92,7 +96,7 @@ cd /tmp/kafka-security/certs
 
 ---
 
-## Exercise 2: SASL Authentication
+### Exercise 2: SASL Authentication - User-Based Security
 
 ### Objective
 Implement SASL authentication for user-based security.
@@ -145,7 +149,7 @@ Implement SASL authentication for user-based security.
 
 ---
 
-## Exercise 3: Access Control Lists (ACLs)
+### Exercise 3: Access Control Lists (ACLs) - Authorization
 
 ### Objective
 Implement fine-grained authorization using ACLs.
@@ -210,7 +214,7 @@ Implement fine-grained authorization using ACLs.
 
 ---
 
-## Exercise 4: Comprehensive Monitoring
+### Exercise 4: Comprehensive Monitoring - JMX & Client Metrics
 
 ### Objective
 Set up production-grade monitoring for Kafka clusters.
@@ -329,7 +333,7 @@ Set up production-grade monitoring for Kafka clusters.
 
 ---
 
-## Exercise 5: Performance Optimization
+### Exercise 5: Performance Optimization - Tuning & Benchmarking
 
 ### Objective
 Optimize Kafka clients for production workloads.
@@ -408,7 +412,7 @@ Optimize Kafka clients for production workloads.
 
 ---
 
-## Exercise 6: Disaster Recovery and Backup
+### Exercise 6: Disaster Recovery and Backup - DR Strategies
 
 ### Objective
 Implement backup and disaster recovery strategies.
@@ -462,9 +466,48 @@ Implement backup and disaster recovery strategies.
 
 ---
 
+## Java Developer Track Exercises (Optional)
+
+> **Java Developer Track Only**
+>
+> Security and monitoring use platform-agnostic approaches. Spring Boot can add additional features:
+
+### Spring Boot Security & Monitoring
+
+1. **Spring Security Integration**
+    ```bash
+    # Review Spring Boot security configuration
+    cat src/main/resources/application.yml | grep -A 20 security
+    ```
+
+2. **Spring Boot Actuator for Monitoring**
+    - Health endpoints
+    - Metrics endpoints
+    - Custom health indicators
+
+3. **Configuration Management**
+    ```bash
+    # Start Spring Boot with security profile
+    mvn spring-boot:run -Dspring-boot.run.profiles=secure
+
+    # Access actuator endpoints
+    curl http://localhost:8080/actuator/health
+    curl http://localhost:8080/actuator/metrics
+    ```
+
+4. **Additional Spring Features**
+    - Externalized configuration
+    - Profile-based security
+    - Micrometer metrics integration
+    - Spring Cloud monitoring
+
+**Note:** Security configurations (SSL, SASL, ACLs) are Kafka-native. Spring Boot provides convenient property management and monitoring endpoints. The core security knowledge from Data Engineer track is essential for production deployments.
+
+---
+
 ## Key Learning Outcomes
 
-After completing these exercises, you should understand:
+After completing the Data Engineer track exercises, you should understand:
 
 1. **SSL/TLS Security**: Certificate-based encryption
 2. **SASL Authentication**: User-based security mechanisms

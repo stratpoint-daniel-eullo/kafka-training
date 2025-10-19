@@ -1,26 +1,52 @@
-# Practice Exercises & Capstone Challenge
+# Hands-On Exercises
 
-## Overview
+This training provides exercises for both learning tracks:
 
-These hands-on exercises complement the 8-day Kafka training program and provide progressive challenges that build toward a **final capstone presentation**.
+## Learning Tracks Overview
 
-## Learning Approach
+### Data Engineer Track (Recommended)
 
-### Two Tracks Available
+Focus on platform-agnostic Kafka skills:
 
-**Track 1: Individual Exercises** (This Section)
+- CLI tools (kafka-console-producer, kafka-console-consumer, kafka-topics, etc.)
+- Pure Kafka API (KafkaProducer, KafkaConsumer, AdminClient, Streams API)
+- Configuration and tuning with Properties objects
+- Schema Registry CLI and REST API
+- Kafka Connect REST API
+- Performance optimization and production patterns
 
-- Focused practice on specific Kafka concepts
-- Step-by-step guided exercises
-- Immediate skill reinforcement
-- Perfect for learning individual topics
+**Why Data Engineer Track?**
 
-**Track 2: EventMart Progressive Project** (Recommended for Capstone)
+- Platform-independent skills transferable to any Kafka environment
+- Deep understanding of Kafka fundamentals
+- Direct control over configurations and behavior
+- Industry-standard approach for data platform engineers
 
-- Build a complete e-commerce event streaming platform
-- Integrates all training concepts
-- Real-world architecture patterns
-- Ideal for final presentation/demo
+### Java Developer Track (Optional)
+
+Additional exercises for Spring Boot developers:
+
+- Spring Boot integration patterns
+- Spring Kafka (@KafkaListener, KafkaTemplate)
+- REST API development with Spring Web
+- Spring configuration and profiles
+- Web UI examples
+
+**When to use Java Developer Track?**
+
+- Building microservices with Spring Boot
+- Rapid application development
+- Teams already using Spring ecosystem
+- REST API-driven architectures
+
+## Exercise Structure by Day
+
+Each day's exercises are organized into two sections:
+
+1. **Data Engineer Track Exercises** (Recommended) - CLI and pure Kafka API focused
+2. **Java Developer Track Exercises** (Optional) - Spring Boot integration focused
+
+Choose exercises based on your learning goals and team requirements.
 
 ## Capstone Presentation Goal
 
@@ -36,27 +62,28 @@ At the end of the 8-day training, you'll present your work demonstrating mastery
 - Container deployment and monitoring
 
 ### Presentation Components
+
 1. **Architecture Overview** (5 min)
-   - System design and component interaction
-   - Topic structure and data flow
-   - Technology choices and justification
+    - System design and component interaction
+    - Topic structure and data flow
+    - Technology choices and justification
 
 2. **Live Demo** (10 min)
-   - Running system demonstration
-   - Key features in action
-   - Real-time data processing
-   - Monitoring and observability
+    - Running system demonstration
+    - Key features in action
+    - Real-time data processing
+    - Monitoring and observability
 
 3. **Technical Deep Dive** (5 min)
-   - Code walkthrough of key components
-   - Kafka patterns implemented
-   - Challenges overcome
-   - Performance considerations
+    - Code walkthrough of key components
+    - Kafka patterns implemented
+    - Challenges overcome
+    - Performance considerations
 
 4. **Q&A** (5 min)
-   - Answer questions about implementation
-   - Discuss design decisions
-   - Explain troubleshooting approaches
+    - Answer questions about implementation
+    - Discuss design decisions
+    - Explain troubleshooting approaches
 
 ## Exercise Structure by Day
 
@@ -154,11 +181,12 @@ Ensure you have access to:
 ### Exercise Workflow
 
 1. **Read** the training day documentation first
-2. **Start** with Exercise 1 in each day's exercises
-3. **Complete** each exercise before moving to the next
-4. **Verify** results match expected output
-5. **Experiment** with variations
-6. **Document** learnings for your capstone
+2. **Choose your track** - Data Engineer (recommended) or Java Developer
+3. **Start** with Exercise 1 in each day's exercises
+4. **Complete** each exercise before moving to the next
+5. **Verify** results match expected output
+6. **Experiment** with variations
+7. **Document** learnings for your capstone
 
 ## Capstone Preparation Tips
 
@@ -256,11 +284,15 @@ Track your completion:
 
 ## Next Steps
 
-**Option A: Start Exercises**
+**Option A: Start Data Engineer Track**
 
-Begin with [Day 1 Exercises](day01-exercises.md) for focused practice
+Begin with [Day 1 Exercises](day01-exercises.md) - recommended for platform-agnostic Kafka skills
 
-**Option B: Build EventMart** (Recommended for Capstone)
+**Option B: Start Java Developer Track**
+
+Begin with [Day 1 Exercises](day01-exercises.md) - focus on Spring Boot integration exercises
+
+**Option C: Build EventMart** (Recommended for Capstone)
 
 Follow the [EventMart Project Guide](../training/) to build your presentation project
 

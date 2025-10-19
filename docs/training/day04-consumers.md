@@ -1,5 +1,8 @@
 # Day 4: Kafka Consumers
 
+> **Primary Audience:** Data Engineers
+> **Learning Track:** Platform-agnostic Kafka concepts. Data engineers focus on CLI/pure API. Java developers see Spring Boot sections (marked optional).
+
 ## Learning Objectives
 
 By the end of Day 4, you will:
@@ -12,7 +15,9 @@ By the end of Day 4, you will:
 - [ ] Implement error handling and retry logic
 - [ ] Optimize consumer performance
 
-## Consumer Architecture
+## Core Concepts
+
+### Consumer Architecture
 
 ```mermaid
 graph TB
@@ -31,9 +36,1028 @@ graph TB
     style CG fill:#00cc66,stroke:#333,stroke-width:2px,color:#fff
 ```
 
-## Consumer Configuration
+### Consumer Groups
 
-### Basic Consumer Setup
+Consumer groups enable parallel processing and fault tolerance:
+
+- **Single consumer group**: Partitions divided among consumers
+- **Multiple consumer groups**: Each group reads all messages independently
+- **Scalability**: Add consumers up to partition count
+- **Fault tolerance**: Automatic rebalancing on failure
+
+```mermaid
+graph TB
+    subgraph "Topic: orders"
+        P0[Partition 0]
+        P1[Partition 1]
+        P2[Partition 2]
+    end
+
+    subgraph "Group: order-processor"
+        C1[Consumer 1]
+        C2[Consumer 2]
+    end
+
+    subgraph "Group: analytics-pipeline"
+        A1[Consumer 1]
+    end
+
+    subgraph "Group: audit-logger"
+        L1[Consumer 1]
+        L2[Consumer 2]
+    end
+
+    P0 --> C1
+    P1 --> C1
+    P2 --> C2
+
+    P0 --> A1
+    P1 --> A1
+    P2 --> A1
+
+    P0 --> L1
+    P1 --> L2
+    P2 --> L2
+
+    style P0 fill:#0066cc,stroke:#333,stroke-width:2px,color:#fff
+    style P1 fill:#0066cc,stroke:#333,stroke-width:2px,color:#fff
+    style P2 fill:#0066cc,stroke:#333,stroke-width:2px,color:#fff
+```
+
+## CLI Approach (Data Engineer Track)
+
+### kafka-console-consumer
+
+Basic consumption from the command line:
+
+```bash
+# Consume from beginning
+docker exec -it kafka-training-kafka kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic orders \
+  --from-beginning
+
+# Consume with key and partition info
+docker exec -it kafka-training-kafka kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic orders \
+  --property print.key=true \
+  --property print.partition=true \
+  --property print.offset=true \
+  --property print.timestamp=true
+
+# Consume with consumer group
+docker exec -it kafka-training-kafka kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic orders \
+  --group order-processor \
+  --from-beginning
+
+# Consume specific partition
+docker exec -it kafka-training-kafka kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic orders \
+  --partition 0 \
+  --offset earliest
+```
+
+### Consumer Group Management
+
+```bash
+# List all consumer groups
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --list
+
+# Describe consumer group
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --group order-processor \
+  --describe
+
+# Output shows:
+# - Current offset per partition
+# - Log end offset
+# - Lag (difference)
+# - Consumer ID
+# - Host
+
+# View offsets only
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --group order-processor \
+  --describe \
+  --offsets
+
+# View member details
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --group order-processor \
+  --describe \
+  --members
+
+# View state
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --group order-processor \
+  --describe \
+  --state
+```
+
+### Offset Management
+
+```bash
+# Reset offsets to earliest
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --group order-processor \
+  --reset-offsets \
+  --to-earliest \
+  --topic orders \
+  --execute
+
+# Reset to latest
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --group order-processor \
+  --reset-offsets \
+  --to-latest \
+  --topic orders \
+  --execute
+
+# Reset to specific offset
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --group order-processor \
+  --reset-offsets \
+  --to-offset 100 \
+  --topic orders:0 \
+  --execute
+
+# Reset to specific datetime
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --group order-processor \
+  --reset-offsets \
+  --to-datetime 2024-01-01T00:00:00.000 \
+  --topic orders \
+  --execute
+
+# Shift offsets forward/backward
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --group order-processor \
+  --reset-offsets \
+  --shift-by -10 \
+  --topic orders \
+  --execute
+
+# Delete consumer group (must be empty)
+docker exec kafka-training-kafka kafka-consumer-groups \
+  --bootstrap-server localhost:9092 \
+  --delete \
+  --group order-processor
+```
+
+## Production Example: SimpleConsumer.java
+
+> **See Working Example**: `src/main/java/com/training/kafka/Day04Consumers/SimpleConsumer.java`
+
+This is the actual consumer implementation from the repository, showing production-ready patterns for reliable message consumption.
+
+### Consumer Configuration (Lines 26-40)
+
+From `SimpleConsumer.java:26-40`:
+
+```java
+Properties props = new Properties();
+props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+props.put(ConsumerConfig.CLIENT_ID_CONFIG, "simple-consumer");
+props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+
+// Consumer behavior settings
+props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // Manual commit for better control
+props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100");
+props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
+props.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "10000");
+
+this.consumer = new KafkaConsumer<>(props);
+```
+
+**Key Configuration Decisions:**
+- `auto.offset.reset=earliest`: Start from beginning if no committed offset
+- `enable.auto.commit=false`: Manual offset control (more reliable)
+- `max.poll.records=100`: Limit records per poll for controlled batch processing
+- `session.timeout.ms=30000`: 30 seconds before consumer is considered failed
+- `heartbeat.interval.ms=10000`: Send heartbeat every 10 seconds
+
+### Basic Consumption with Batch Commit (Lines 46-80)
+
+From `SimpleConsumer.java:46-80`:
+
+```java
+public void consumeMessages(String topicName) {
+    logger.info("Starting to consume messages from topic: {}", topicName);
+
+    // Subscribe to the topic
+    consumer.subscribe(Collections.singletonList(topicName));
+
+    try {
+        while (running) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+
+            if (records.isEmpty()) {
+                continue;
+            }
+
+            logger.info("Received {} messages", records.count());
+
+            for (ConsumerRecord<String, String> record : records) {
+                processMessage(record);
+            }
+
+            // Commit offsets after processing all messages in this batch
+            try {
+                consumer.commitSync();
+                logger.debug("Offsets committed successfully");
+            } catch (Exception e) {
+                logger.error("Failed to commit offsets: {}", e.getMessage());
+            }
+        }
+    } catch (Exception e) {
+        logger.error("Error in consumer loop: {}", e.getMessage(), e);
+    } finally {
+        consumer.close();
+        logger.info("Consumer closed");
+    }
+}
+```
+
+**Key Pattern**: Poll → Process all records → Commit batch. This is efficient but means reprocessing entire batch on failure.
+
+### Manual Offset Management (Lines 85-121)
+
+From `SimpleConsumer.java:85-121`:
+
+```java
+public void consumeWithManualOffsetManagement(String topicName, int maxMessages) {
+    logger.info("Starting to consume {} messages from topic: {}", maxMessages, topicName);
+
+    consumer.subscribe(Collections.singletonList(topicName));
+
+    int messageCount = 0;
+
+    try {
+        while (running && messageCount < maxMessages) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+
+            for (ConsumerRecord<String, String> record : records) {
+                try {
+                    processMessage(record);
+                    messageCount++;
+
+                    // Commit offset for this specific record
+                    TopicPartition partition = new TopicPartition(record.topic(), record.partition());
+                    OffsetAndMetadata offsetMetadata = new OffsetAndMetadata(record.offset() + 1);
+                    consumer.commitSync(Collections.singletonMap(partition, offsetMetadata));
+
+                    logger.debug("Committed offset {} for partition {}", record.offset() + 1, partition);
+
+                    if (messageCount >= maxMessages) {
+                        break;
+                    }
+                } catch (Exception e) {
+                    logger.error("Error processing message at offset {}: {}", record.offset(), e.getMessage());
+                    // In real applications, you might want to implement retry logic or dead letter queues
+                }
+            }
+        }
+    } finally {
+        consumer.close();
+        logger.info("Processed {} messages and closed consumer", messageCount);
+    }
+}
+```
+
+**Key Pattern**: Process record → Commit specific offset. This ensures exactly-once processing but is slower due to more commits.
+
+### Consumer Group Demo (Lines 144-175)
+
+From `SimpleConsumer.java:144-175`:
+
+```java
+public static void demonstrateConsumerGroup(String bootstrapServers, String topicName) {
+    logger.info("Demonstrating consumer group behavior...");
+
+    // Create multiple consumers in the same group
+    String groupId = "demo-consumer-group";
+
+    // Consumer 1
+    Thread consumer1Thread = new Thread(() -> {
+        SimpleConsumer consumer1 = new SimpleConsumer(bootstrapServers, groupId);
+        consumer1.consumeWithManualOffsetManagement(topicName, 5);
+    }, "Consumer-1");
+
+    // Consumer 2
+    Thread consumer2Thread = new Thread(() -> {
+        SimpleConsumer consumer2 = new SimpleConsumer(bootstrapServers, groupId);
+        consumer2.consumeWithManualOffsetManagement(topicName, 5);
+    }, "Consumer-2");
+
+    // Start both consumers
+    consumer1Thread.start();
+    consumer2Thread.start();
+
+    try {
+        consumer1Thread.join();
+        consumer2Thread.join();
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        logger.error("Interrupted while waiting for consumer threads");
+    }
+
+    logger.info("Consumer group demonstration completed");
+}
+```
+
+**Key Pattern**: Multiple consumers in same group automatically partition work. Kafka handles load balancing.
+
+## Python Consumer Implementation (Data Engineer Track)
+
+### Using kafka-python
+
+Install the library:
+```bash
+pip install kafka-python
+```
+
+**Complete Python Example**: `examples/python/day04_consumer.py`
+
+```bash
+# Run the Python consumer example
+python examples/python/day04_consumer.py
+```
+
+**Key code from day04_consumer.py:**
+
+```python
+from kafka import KafkaConsumer
+import json
+
+def create_consumer():
+    """
+    Create Kafka consumer with configuration
+    Compare to Java: new KafkaConsumer<>(properties)
+    """
+    return KafkaConsumer(
+        # Subscribe to topic
+        'training-day01-cli',
+
+        # Connection
+        bootstrap_servers='localhost:9092',
+        group_id='python-consumer-cli',
+        client_id='python-consumer-1',
+
+        # Deserialization (Java: StringDeserializer)
+        key_deserializer=lambda k: k.decode('utf-8') if k else None,
+        value_deserializer=lambda v: json.loads(v.decode('utf-8')),
+
+        # Consumer behavior (same as Java)
+        auto_offset_reset='earliest',      # ConsumerConfig.AUTO_OFFSET_RESET_CONFIG
+        enable_auto_commit=False,          # ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG
+        max_poll_records=100,              # ConsumerConfig.MAX_POLL_RECORDS_CONFIG
+        session_timeout_ms=30000,          # ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG
+        heartbeat_interval_ms=10000        # ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG
+    )
+
+def consume_messages_manual_commit(consumer, max_messages=10):
+    """
+    Consume messages with manual commit (at-least-once semantics)
+    Compare to Java: consumer.poll() + consumer.commitSync()
+    """
+    message_count = 0
+
+    try:
+        print(f"Polling for up to {max_messages} messages...")
+
+        while message_count < max_messages:
+            # Poll for messages (Java: consumer.poll(Duration.ofMillis(1000)))
+            records = consumer.poll(timeout_ms=1000)
+
+            if not records:
+                continue
+
+            # Process messages
+            for message in records:
+                print(f"✓ Consumed message:")
+                print(f"  Partition: {message.partition}")
+                print(f"  Offset: {message.offset}")
+                print(f"  Key: {message.key}")
+                print(f"  Value: {message.value}")
+
+                message_count += 1
+
+                # Manual commit after each message
+                consumer.commit()
+
+                if message_count >= max_messages:
+                    break
+    finally:
+        consumer.close()
+
+# Usage
+consumer = create_consumer()
+consume_messages_manual_commit(consumer, max_messages=10)
+```
+
+**Install Dependencies:**
+
+```bash
+pip install kafka-python
+# Or install all training dependencies
+pip install -r examples/python/requirements.txt
+```
+
+### Using confluent-kafka (Faster, C-based)
+
+> **Note**: This section shows confluent-kafka for comparison. Day 4 examples use kafka-python. For working confluent-kafka examples, see Day 5 (Avro with Schema Registry) at `examples/python/day05_avro_consumer.py`.
+
+Install the library:
+```bash
+pip install confluent-kafka
+```
+
+**Confluent Kafka Consumer:**
+
+```python
+from confluent_kafka import Consumer, TopicPartition, OFFSET_BEGINNING
+import json
+
+class ConfluentConsumer:
+    def __init__(self, bootstrap_servers='localhost:9092', group_id='python-consumer-group'):
+        self.config = {
+            'bootstrap.servers': bootstrap_servers,
+            'group.id': group_id,
+            'client.id': 'simple-consumer',
+
+            # Consumer behavior
+            'auto.offset.reset': 'earliest',
+            'enable.auto.commit': False,  # Manual commit
+            'max.poll.interval.ms': 300000,
+            'session.timeout.ms': 30000,
+            'heartbeat.interval.ms': 10000
+        }
+
+        self.consumer = Consumer(self.config)
+
+    def consume_messages(self, topics):
+        """Consume messages with batch commit"""
+        print(f"Starting to consume messages from topics: {topics}")
+
+        self.consumer.subscribe(topics)
+
+        try:
+            while True:
+                # Poll for message (1 second timeout)
+                msg = self.consumer.poll(timeout=1.0)
+
+                if msg is None:
+                    continue
+
+                if msg.error():
+                    print(f"Consumer error: {msg.error()}")
+                    continue
+
+                # Process message
+                self.process_message(msg)
+
+                # Commit offset after processing
+                try:
+                    self.consumer.commit(asynchronous=False)
+                except Exception as e:
+                    print(f"Failed to commit offset: {e}")
+
+        except KeyboardInterrupt:
+            print("Shutdown signal received")
+        finally:
+            self.consumer.close()
+            print("Consumer closed")
+
+    def consume_with_batch_commit(self, topics, batch_size=100):
+        """Consume messages with periodic batch commit"""
+        print(f"Starting batch consumer for topics: {topics}")
+
+        self.consumer.subscribe(topics)
+        message_count = 0
+        batch = []
+
+        try:
+            while True:
+                msg = self.consumer.poll(timeout=1.0)
+
+                if msg is None:
+                    continue
+
+                if msg.error():
+                    print(f"Consumer error: {msg.error()}")
+                    continue
+
+                # Process and add to batch
+                self.process_message(msg)
+                batch.append(msg)
+                message_count += 1
+
+                # Commit batch when full
+                if len(batch) >= batch_size:
+                    try:
+                        self.consumer.commit(asynchronous=False)
+                        print(f"Committed batch of {len(batch)} messages")
+                        batch.clear()
+                    except Exception as e:
+                        print(f"Failed to commit batch: {e}")
+
+        except KeyboardInterrupt:
+            print("Shutdown signal received")
+            # Commit remaining messages
+            if batch:
+                self.consumer.commit()
+                print(f"Committed final batch of {len(batch)} messages")
+        finally:
+            self.consumer.close()
+            print(f"Processed {message_count} messages and closed consumer")
+
+    def process_message(self, msg):
+        """Process an individual message"""
+        # Decode value
+        try:
+            value = json.loads(msg.value().decode('utf-8'))
+        except:
+            value = msg.value().decode('utf-8')
+
+        key = msg.key().decode('utf-8') if msg.key() else None
+
+        print(f"Processing: topic={msg.topic()}, partition={msg.partition()}, "
+              f"offset={msg.offset()}, key={key}, value={value}")
+
+    def seek_to_beginning(self, topics):
+        """Seek to beginning of all partitions"""
+        self.consumer.subscribe(topics)
+
+        # Wait for assignment
+        assignment = []
+        while not assignment:
+            self.consumer.poll(timeout=1.0)
+            assignment = self.consumer.assignment()
+
+        # Seek each partition to beginning
+        for partition in assignment:
+            partition.offset = OFFSET_BEGINNING
+            self.consumer.seek(partition)
+
+        print(f"Seeked to beginning of {len(assignment)} partitions")
+
+# Usage example
+if __name__ == "__main__":
+    consumer = ConfluentConsumer(group_id='training-consumer-group')
+
+    # Consume with per-message commit
+    # consumer.consume_messages(['user-events'])
+
+    # Or consume with batch commit
+    consumer.consume_with_batch_commit(['user-events'], batch_size=50)
+```
+
+### Consumer Group Management with Python
+
+> **Note**: This is a utility reference snippet. Similar functionality is included in `examples/python/day01_admin.py` for admin operations.
+
+```python
+from kafka import KafkaAdminClient
+from kafka.admin import ConsumerGroupDescription
+
+def describe_consumer_group(bootstrap_servers, group_id):
+    """Describe consumer group (like kafka-consumer-groups CLI)"""
+    admin_client = KafkaAdminClient(
+        bootstrap_servers=bootstrap_servers,
+        client_id='admin-client'
+    )
+
+    # Get group description
+    groups = admin_client.describe_consumer_groups([group_id])
+
+    for group in groups:
+        print(f"Group: {group.group_id}")
+        print(f"State: {group.state}")
+        print(f"Protocol: {group.protocol}")
+        print(f"Members: {len(group.members)}")
+
+        for member in group.members:
+            print(f"  Member ID: {member.member_id}")
+            print(f"  Client ID: {member.client_id}")
+            print(f"  Host: {member.host}")
+            print(f"  Assignments: {member.member_assignment}")
+
+    admin_client.close()
+
+# Usage
+describe_consumer_group('localhost:9092', 'training-consumer-group')
+```
+
+**Key Differences: kafka-python vs confluent-kafka:**
+
+| Feature | kafka-python | confluent-kafka |
+|---------|-------------|-----------------|
+| Implementation | Pure Python | C-based (librdkafka) |
+| Performance | Good for moderate loads | Excellent for high throughput |
+| API Style | More Pythonic (poll returns dict) | More similar to Java API |
+| Offset Management | Both auto and manual | Both auto and manual |
+| Consumer Groups | Full support | Full support |
+| Use Case | Development, data pipelines | Production, high-performance |
+
+## Pure Java Implementation (Additional Examples)
+
+The examples below show additional patterns beyond the production code in SimpleConsumer.java.
+
+### Basic Consumer Configuration
+
+```java
+import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import java.time.Duration;
+import java.util.*;
+
+public class BasicConsumer {
+
+    public static void main(String[] args) {
+        // 1. Configure consumer
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "my-consumer-group");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+            StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            StringDeserializer.class.getName());
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+        // 2. Create consumer
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+
+        // 3. Subscribe to topics
+        consumer.subscribe(Collections.singletonList("orders"));
+
+        // 4. Poll loop
+        try {
+            while (true) {
+                ConsumerRecords<String, String> records =
+                    consumer.poll(Duration.ofMillis(100));
+
+                for (ConsumerRecord<String, String> record : records) {
+                    System.out.printf("Consumed: partition=%d, offset=%d, key=%s, value=%s%n",
+                        record.partition(), record.offset(),
+                        record.key(), record.value());
+                }
+            }
+        } finally {
+            consumer.close();
+        }
+    }
+}
+```
+
+### Consumer Configuration Properties
+
+```properties
+# Connection
+bootstrap.servers=localhost:9092
+client.id=my-consumer-1
+
+# Deserialization
+key.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+
+# Consumer Group
+group.id=my-consumer-group
+group.instance.id=consumer-1                # Static membership (optional)
+
+# Offset Management
+enable.auto.commit=false                     # Manual commit recommended
+auto.commit.interval.ms=5000                 # If auto-commit enabled
+auto.offset.reset=earliest                   # earliest, latest, none
+
+# Fetching Behavior
+max.poll.records=500                         # Records per poll
+fetch.min.bytes=1024                         # Min bytes to fetch
+fetch.max.bytes=52428800                     # Max bytes to fetch (50MB)
+fetch.max.wait.ms=500                        # Max wait for fetch.min.bytes
+max.partition.fetch.bytes=1048576            # Max per partition (1MB)
+
+# Session Management
+session.timeout.ms=30000                     # Heartbeat timeout
+heartbeat.interval.ms=3000                   # Heartbeat frequency
+max.poll.interval.ms=300000                  # Max time between polls (5 min)
+
+# Partition Assignment
+partition.assignment.strategy=org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+
+# Isolation Level (for transactional producers)
+isolation.level=read_committed               # read_committed or read_uncommitted
+```
+
+### Manual Offset Management
+
+```java
+import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.common.TopicPartition;
+import java.util.*;
+
+public class ManualOffsetConsumer {
+
+    public static void main(String[] args) {
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "manual-commit-group");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringDeserializer");
+
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+        consumer.subscribe(Collections.singletonList("orders"));
+
+        try {
+            while (true) {
+                ConsumerRecords<String, String> records =
+                    consumer.poll(Duration.ofMillis(100));
+
+                for (TopicPartition partition : records.partitions()) {
+                    List<ConsumerRecord<String, String>> partitionRecords =
+                        records.records(partition);
+
+                    for (ConsumerRecord<String, String> record : partitionRecords) {
+                        processRecord(record);
+                    }
+
+                    // Commit offset after processing partition
+                    long lastOffset = partitionRecords
+                        .get(partitionRecords.size() - 1)
+                        .offset();
+
+                    consumer.commitSync(Collections.singletonMap(
+                        partition,
+                        new OffsetAndMetadata(lastOffset + 1)
+                    ));
+
+                    System.out.printf("Committed offset %d for partition %d%n",
+                        lastOffset + 1, partition.partition());
+                }
+            }
+        } finally {
+            consumer.close();
+        }
+    }
+
+    private static void processRecord(ConsumerRecord<String, String> record) {
+        System.out.printf("Processing: %s%n", record.value());
+    }
+}
+```
+
+### Partition Assignment Strategies
+
+#### Range Assignor (Default)
+
+```properties
+partition.assignment.strategy=org.apache.kafka.clients.consumer.RangeAssignor
+```
+
+Example: Topic with 6 partitions, 3 consumers
+- Consumer 1: Partitions 0, 1
+- Consumer 2: Partitions 2, 3
+- Consumer 3: Partitions 4, 5
+
+#### Round Robin Assignor
+
+```properties
+partition.assignment.strategy=org.apache.kafka.clients.consumer.RoundRobinAssignor
+```
+
+Example: Topic with 6 partitions, 3 consumers
+- Consumer 1: Partitions 0, 3
+- Consumer 2: Partitions 1, 4
+- Consumer 3: Partitions 2, 5
+
+#### Sticky Assignor
+
+```properties
+partition.assignment.strategy=org.apache.kafka.clients.consumer.StickyAssignor
+```
+
+Benefits:
+- Preserves partition assignments when possible
+- Reduces rebalancing disruption
+- Maintains consumer state/cache
+
+#### Cooperative Sticky Assignor (Recommended)
+
+```properties
+partition.assignment.strategy=org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+```
+
+Benefits:
+- Consumers keep processing during rebalance
+- Only affected partitions are reassigned
+- Minimal disruption
+- Best for production
+
+!!! success "Production Recommendation"
+    Use **CooperativeStickyAssignor** for production systems. It provides the best balance of fairness and minimal disruption.
+
+### Seek Operations
+
+```java
+import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.common.TopicPartition;
+import java.time.Instant;
+import java.util.*;
+
+public class SeekOperations {
+
+    public static void seekToBeginning(KafkaConsumer<String, String> consumer) {
+        Collection<TopicPartition> partitions = consumer.assignment();
+        consumer.seekToBeginning(partitions);
+        System.out.println("Seeked to beginning for partitions: " + partitions);
+    }
+
+    public static void seekToEnd(KafkaConsumer<String, String> consumer) {
+        Collection<TopicPartition> partitions = consumer.assignment();
+        consumer.seekToEnd(partitions);
+        System.out.println("Seeked to end for partitions: " + partitions);
+    }
+
+    public static void seekToOffset(KafkaConsumer<String, String> consumer,
+                                   String topic, int partition, long offset) {
+        TopicPartition topicPartition = new TopicPartition(topic, partition);
+        consumer.seek(topicPartition, offset);
+        System.out.printf("Seeked partition %d to offset %d%n", partition, offset);
+    }
+
+    public static void seekToTimestamp(KafkaConsumer<String, String> consumer,
+                                      long timestamp) {
+        Map<TopicPartition, Long> timestampsToSearch = new HashMap<>();
+
+        for (TopicPartition partition : consumer.assignment()) {
+            timestampsToSearch.put(partition, timestamp);
+        }
+
+        Map<TopicPartition, OffsetAndTimestamp> offsets =
+            consumer.offsetsForTimes(timestampsToSearch);
+
+        for (Map.Entry<TopicPartition, OffsetAndTimestamp> entry : offsets.entrySet()) {
+            if (entry.getValue() != null) {
+                consumer.seek(entry.getKey(), entry.getValue().offset());
+                System.out.printf("Seeked partition %d to timestamp offset %d%n",
+                    entry.getKey().partition(), entry.getValue().offset());
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "seek-demo-group");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringDeserializer");
+
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+        consumer.subscribe(Collections.singletonList("orders"));
+
+        // Trigger partition assignment
+        consumer.poll(Duration.ofMillis(100));
+
+        // Seek to 1 hour ago
+        long oneHourAgo = Instant.now().minusSeconds(3600).toEpochMilli();
+        seekToTimestamp(consumer, oneHourAgo);
+
+        // Now consume
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+            for (ConsumerRecord<String, String> record : records) {
+                System.out.printf("Consumed: %s%n", record.value());
+            }
+        }
+    }
+}
+```
+
+### Rebalance Listener
+
+```java
+import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.common.TopicPartition;
+import java.util.*;
+
+public class RebalanceAwareConsumer {
+
+    private static Map<TopicPartition, OffsetAndMetadata> currentOffsets =
+        new HashMap<>();
+
+    public static class RebalanceListener implements ConsumerRebalanceListener {
+
+        private KafkaConsumer<String, String> consumer;
+
+        public RebalanceListener(KafkaConsumer<String, String> consumer) {
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+            System.out.println("Partitions revoked: " + partitions);
+
+            // Commit offsets before losing partitions
+            for (TopicPartition partition : partitions) {
+                OffsetAndMetadata offset = currentOffsets.get(partition);
+                if (offset != null) {
+                    consumer.commitSync(Collections.singletonMap(partition, offset));
+                    System.out.println("Committed offset for revoked partition: " + partition);
+                }
+            }
+
+            // Clean up resources for revoked partitions
+            cleanupResources(partitions);
+        }
+
+        @Override
+        public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+            System.out.println("Partitions assigned: " + partitions);
+
+            // Initialize resources for new partitions
+            initializeResources(partitions);
+        }
+
+        private void cleanupResources(Collection<TopicPartition> partitions) {
+            // Close connections, flush buffers, etc.
+        }
+
+        private void initializeResources(Collection<TopicPartition> partitions) {
+            // Open connections, initialize caches, etc.
+        }
+    }
+
+    public static void main(String[] args) {
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "rebalance-aware-group");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            "org.apache.kafka.common.serialization.StringDeserializer");
+
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+
+        consumer.subscribe(
+            Collections.singletonList("orders"),
+            new RebalanceListener(consumer)
+        );
+
+        try {
+            while (true) {
+                ConsumerRecords<String, String> records =
+                    consumer.poll(Duration.ofMillis(100));
+
+                for (ConsumerRecord<String, String> record : records) {
+                    processRecord(record);
+
+                    // Track offsets
+                    TopicPartition partition =
+                        new TopicPartition(record.topic(), record.partition());
+                    currentOffsets.put(partition,
+                        new OffsetAndMetadata(record.offset() + 1));
+                }
+            }
+        } finally {
+            consumer.close();
+        }
+    }
+
+    private static void processRecord(ConsumerRecord<String, String> record) {
+        System.out.printf("Processing: %s%n", record.value());
+    }
+}
+```
+
+## Spring Boot Integration (Java Developer Track - Optional)
+
+> **Java Developer Track Only**
+> Spring Boot integration for Java microservices.
+
+### Configuration
 
 ```java
 @Configuration
@@ -88,48 +1112,7 @@ public class KafkaConsumerConfig {
 }
 ```
 
-### Configuration Properties Explained
-
-```properties
-# Connection
-bootstrap.servers=localhost:9092
-client.id=my-consumer-1
-
-# Deserialization
-key.deserializer=org.apache.kafka.common.serialization.StringDeserializer
-value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
-
-# Consumer Group
-group.id=my-consumer-group
-group.instance.id=consumer-1                # Static membership (optional)
-
-# Offset Management
-enable.auto.commit=false                     # Manual commit recommended
-auto.commit.interval.ms=5000                 # If auto-commit enabled
-auto.offset.reset=earliest                   # earliest, latest, none
-
-# Fetching Behavior
-max.poll.records=500                         # Records per poll
-fetch.min.bytes=1024                         # Min bytes to fetch
-fetch.max.bytes=52428800                     # Max bytes to fetch (50MB)
-fetch.max.wait.ms=500                        # Max wait for fetch.min.bytes
-max.partition.fetch.bytes=1048576            # Max per partition (1MB)
-
-# Session Management
-session.timeout.ms=30000                     # Heartbeat timeout
-heartbeat.interval.ms=3000                   # Heartbeat frequency
-max.poll.interval.ms=300000                  # Max time between polls (5 min)
-
-# Partition Assignment
-partition.assignment.strategy=org.apache.kafka.clients.consumer.CooperativeStickyAssignor
-
-# Isolation Level (for transactional producers)
-isolation.level=read_committed               # read_committed or read_uncommitted
-```
-
-## Consumer Groups
-
-### Single Consumer Group
+### Listener Examples
 
 ```java
 @Service
@@ -146,220 +1129,6 @@ public class OrderConsumer {
 
         processOrder(record.value());
     }
-}
-```
-
-### Multiple Consumers in Group
-
-```java
-@Service
-public class ParallelOrderConsumer {
-
-    // Consumer 1
-    @KafkaListener(
-        topics = "orders",
-        groupId = "order-processor",
-        containerFactory = "kafkaListenerContainerFactory"
-    )
-    public void consumePartition0And1(ConsumerRecord<String, String> record) {
-        log.info("Consumer 1: partition={}, offset={}",
-            record.partition(), record.offset());
-        processOrder(record.value());
-    }
-
-    // Consumer 2 (same group, different partitions assigned automatically)
-    @KafkaListener(
-        topics = "orders",
-        groupId = "order-processor",
-        containerFactory = "kafkaListenerContainerFactory"
-    )
-    public void consumePartition2And3(ConsumerRecord<String, String> record) {
-        log.info("Consumer 2: partition={}, offset={}",
-            record.partition(), record.offset());
-        processOrder(record.value());
-    }
-}
-```
-
-### Multiple Consumer Groups
-
-```java
-@Service
-public class MultiGroupConsumers {
-
-    // Group 1: Order Processing
-    @KafkaListener(
-        topics = "orders",
-        groupId = "order-processor"
-    )
-    public void processOrders(String order) {
-        orderService.process(order);
-    }
-
-    // Group 2: Analytics (same topic, independent consumption)
-    @KafkaListener(
-        topics = "orders",
-        groupId = "analytics-pipeline"
-    )
-    public void analyzeOrders(String order) {
-        analyticsService.analyze(order);
-    }
-
-    // Group 3: Audit Logging (same topic, independent consumption)
-    @KafkaListener(
-        topics = "orders",
-        groupId = "audit-logger"
-    )
-    public void auditOrders(String order) {
-        auditService.log(order);
-    }
-}
-```
-
-```mermaid
-graph TB
-    subgraph "Topic: orders"
-        P0[Partition 0]
-        P1[Partition 1]
-        P2[Partition 2]
-    end
-
-    subgraph "Group: order-processor"
-        C1[Consumer 1]
-        C2[Consumer 2]
-    end
-
-    subgraph "Group: analytics-pipeline"
-        A1[Consumer 1]
-    end
-
-    subgraph "Group: audit-logger"
-        L1[Consumer 1]
-        L2[Consumer 2]
-    end
-
-    P0 --> C1
-    P1 --> C1
-    P2 --> C2
-
-    P0 --> A1
-    P1 --> A1
-    P2 --> A1
-
-    P0 --> L1
-    P1 --> L2
-    P2 --> L2
-
-    style P0 fill:#0066cc,stroke:#333,stroke-width:2px,color:#fff
-    style P1 fill:#0066cc,stroke:#333,stroke-width:2px,color:#fff
-    style P2 fill:#0066cc,stroke:#333,stroke-width:2px,color:#fff
-```
-
-## Partition Assignment Strategies
-
-### Range Assignor (Default)
-
-Assigns partitions in ranges to consumers.
-
-```java
-@Configuration
-public class RangeAssignorConfig {
-
-    @Bean
-    public ConsumerFactory<String, String> rangeConsumerFactory() {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "range-group");
-        config.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG,
-            RangeAssignor.class.getName());
-        // ... other configs
-        return new DefaultKafkaConsumerFactory<>(config);
-    }
-}
-```
-
-**Example:** Topic with 6 partitions, 3 consumers
-
-- Consumer 1: Partitions 0, 1
-- Consumer 2: Partitions 2, 3
-- Consumer 3: Partitions 4, 5
-
-### Round Robin Assignor
-
-Distributes partitions evenly in round-robin fashion.
-
-```properties
-partition.assignment.strategy=org.apache.kafka.clients.consumer.RoundRobinAssignor
-```
-
-**Example:** Topic with 6 partitions, 3 consumers
-
-- Consumer 1: Partitions 0, 3
-- Consumer 2: Partitions 1, 4
-- Consumer 3: Partitions 2, 5
-
-### Sticky Assignor
-
-Minimizes partition movement during rebalancing.
-
-```properties
-partition.assignment.strategy=org.apache.kafka.clients.consumer.StickyAssignor
-```
-
-**Benefits:**
-- Preserves partition assignments when possible
-- Reduces rebalancing disruption
-- Maintains consumer state/cache
-
-### Cooperative Sticky Assignor (Recommended)
-
-Incremental rebalancing without stopping all consumers.
-
-```properties
-partition.assignment.strategy=org.apache.kafka.clients.consumer.CooperativeStickyAssignor
-```
-
-**Benefits:**
-- Consumers keep processing during rebalance
-- Only affected partitions are reassigned
-- Minimal disruption
-- Best for production
-
-!!! success "Production Recommendation"
-    Use **CooperativeStickyAssignor** for production systems. It provides the best balance of fairness and minimal disruption.
-
-## Offset Management
-
-### Auto-Commit (Simple)
-
-```java
-@Service
-public class AutoCommitConsumer {
-
-    @KafkaListener(
-        topics = "events",
-        groupId = "auto-commit-group",
-        properties = {
-            "enable.auto.commit=true",
-            "auto.commit.interval.ms=5000"
-        }
-    )
-    public void consume(String event) {
-        log.info("Processing: {}", event);
-        processEvent(event);
-        // Offset committed automatically every 5 seconds
-    }
-}
-```
-
-**Pros:** Simple, no code required
-**Cons:** May lose messages on crash, may process duplicates
-
-### Manual Commit (Recommended)
-
-```java
-@Service
-public class ManualCommitConsumer {
 
     @KafkaListener(
         topics = "orders",
@@ -368,31 +1137,17 @@ public class ManualCommitConsumer {
             "enable.auto.commit=false"
         }
     )
-    public void consume(ConsumerRecord<String, String> record,
-                       Acknowledgment acknowledgment) {
+    public void consumeWithManualCommit(ConsumerRecord<String, String> record,
+                                       Acknowledgment acknowledgment) {
         try {
-            // Process message
-            Order order = parseOrder(record.value());
-            orderService.save(order);
-
-            // Commit offset after successful processing
+            processOrder(record.value());
             acknowledgment.acknowledge();
-
             log.info("Processed and committed offset: {}", record.offset());
-
         } catch (Exception e) {
             log.error("Processing failed, will retry", e);
             // Don't commit - message will be reprocessed
         }
     }
-}
-```
-
-### Batch Commit
-
-```java
-@Service
-public class BatchCommitConsumer {
 
     @KafkaListener(
         topics = "events",
@@ -402,402 +1157,16 @@ public class BatchCommitConsumer {
     public void consumeBatch(List<ConsumerRecord<String, String>> records,
                             Acknowledgment acknowledgment) {
         try {
-            // Process entire batch
             for (ConsumerRecord<String, String> record : records) {
                 processEvent(record.value());
             }
-
-            // Commit after batch completes
             acknowledgment.acknowledge();
-
-            log.info("Processed and committed batch of {} records",
-                records.size());
-
+            log.info("Processed and committed batch of {} records", records.size());
         } catch (Exception e) {
             log.error("Batch processing failed", e);
-            // Don't commit - entire batch will be reprocessed
         }
     }
 }
-```
-
-### Manual Offset Control
-
-```java
-@Service
-public class ManualOffsetConsumer {
-
-    @Autowired
-    private KafkaConsumer<String, String> kafkaConsumer;
-
-    public void consumeWithManualOffset() {
-        kafkaConsumer.subscribe(Collections.singletonList("events"));
-
-        while (true) {
-            ConsumerRecords<String, String> records =
-                kafkaConsumer.poll(Duration.ofMillis(100));
-
-            for (TopicPartition partition : records.partitions()) {
-                List<ConsumerRecord<String, String>> partitionRecords =
-                    records.records(partition);
-
-                for (ConsumerRecord<String, String> record : partitionRecords) {
-                    processEvent(record.value());
-                }
-
-                // Get last offset for this partition
-                long lastOffset = partitionRecords
-                    .get(partitionRecords.size() - 1)
-                    .offset();
-
-                // Commit specific offset
-                Map<TopicPartition, OffsetAndMetadata> offsets = Map.of(
-                    partition,
-                    new OffsetAndMetadata(lastOffset + 1)
-                );
-
-                kafkaConsumer.commitSync(offsets);
-                log.info("Committed offset {} for partition {}",
-                    lastOffset + 1, partition.partition());
-            }
-        }
-    }
-}
-```
-
-## Consumer Rebalancing
-
-### Rebalance Listener
-
-```java
-@Service
-public class RebalanceAwareConsumer {
-
-    private final Map<TopicPartition, OffsetAndMetadata> currentOffsets =
-        new ConcurrentHashMap<>();
-
-    @KafkaListener(topics = "events", groupId = "rebalance-group")
-    public void consume(ConsumerRecord<String, String> record,
-                       Consumer<?, ?> consumer) {
-        processEvent(record.value());
-
-        // Track offsets
-        TopicPartition partition =
-            new TopicPartition(record.topic(), record.partition());
-        currentOffsets.put(partition,
-            new OffsetAndMetadata(record.offset() + 1));
-    }
-
-    @Component
-    public static class RebalanceListener implements ConsumerRebalanceListener {
-
-        @Override
-        public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-            log.warn("Partitions revoked: {}", partitions);
-
-            // Commit offsets before losing partitions
-            for (TopicPartition partition : partitions) {
-                OffsetAndMetadata offset = currentOffsets.get(partition);
-                if (offset != null) {
-                    consumer.commitSync(Map.of(partition, offset));
-                    log.info("Committed offset for revoked partition: {}",
-                        partition);
-                }
-            }
-
-            // Clean up resources for revoked partitions
-            closeResourcesForPartitions(partitions);
-        }
-
-        @Override
-        public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-            log.info("Partitions assigned: {}", partitions);
-
-            // Initialize resources for new partitions
-            initializeResourcesForPartitions(partitions);
-
-            // Optional: Seek to specific offset
-            for (TopicPartition partition : partitions) {
-                long offset = getStoredOffset(partition);
-                if (offset >= 0) {
-                    consumer.seek(partition, offset);
-                    log.info("Seeking partition {} to offset {}",
-                        partition, offset);
-                }
-            }
-        }
-    }
-}
-```
-
-### Graceful Shutdown
-
-```java
-@Service
-public class GracefulShutdownConsumer {
-
-    private final AtomicBoolean running = new AtomicBoolean(true);
-
-    @Autowired
-    private KafkaConsumer<String, String> kafkaConsumer;
-
-    @PostConstruct
-    public void startConsuming() {
-        new Thread(() -> {
-            try {
-                kafkaConsumer.subscribe(Collections.singletonList("events"));
-
-                while (running.get()) {
-                    ConsumerRecords<String, String> records =
-                        kafkaConsumer.poll(Duration.ofMillis(100));
-
-                    for (ConsumerRecord<String, String> record : records) {
-                        processEvent(record.value());
-                    }
-
-                    kafkaConsumer.commitSync();
-                }
-            } finally {
-                kafkaConsumer.close();
-                log.info("Consumer closed gracefully");
-            }
-        }).start();
-    }
-
-    @PreDestroy
-    public void shutdown() {
-        log.info("Initiating graceful shutdown");
-        running.set(false);  // Stop polling loop
-    }
-}
-```
-
-## Seek Operations
-
-### Seek to Beginning
-
-```java
-@Service
-public class SeekOperations {
-
-    @Autowired
-    private KafkaConsumer<String, String> kafkaConsumer;
-
-    public void seekToBeginning(String topic) {
-        List<TopicPartition> partitions = kafkaConsumer.assignment();
-
-        if (partitions.isEmpty()) {
-            kafkaConsumer.subscribe(Collections.singletonList(topic));
-            kafkaConsumer.poll(Duration.ofMillis(100));  // Trigger assignment
-            partitions = new ArrayList<>(kafkaConsumer.assignment());
-        }
-
-        kafkaConsumer.seekToBeginning(partitions);
-        log.info("Seeked to beginning for partitions: {}", partitions);
-    }
-
-    public void seekToEnd(String topic) {
-        List<TopicPartition> partitions = new ArrayList<>(
-            kafkaConsumer.assignment());
-        kafkaConsumer.seekToEnd(partitions);
-        log.info("Seeked to end for partitions: {}", partitions);
-    }
-
-    public void seekToOffset(String topic, int partition, long offset) {
-        TopicPartition topicPartition = new TopicPartition(topic, partition);
-        kafkaConsumer.seek(topicPartition, offset);
-        log.info("Seeked partition {} to offset {}", partition, offset);
-    }
-
-    public void seekToTimestamp(String topic, long timestamp) {
-        Map<TopicPartition, Long> timestampsToSearch = new HashMap<>();
-
-        for (TopicPartition partition : kafkaConsumer.assignment()) {
-            timestampsToSearch.put(partition, timestamp);
-        }
-
-        Map<TopicPartition, OffsetAndTimestamp> offsets =
-            kafkaConsumer.offsetsForTimes(timestampsToSearch);
-
-        for (Map.Entry<TopicPartition, OffsetAndTimestamp> entry :
-                offsets.entrySet()) {
-            if (entry.getValue() != null) {
-                kafkaConsumer.seek(entry.getKey(), entry.getValue().offset());
-                log.info("Seeked partition {} to timestamp offset {}",
-                    entry.getKey().partition(), entry.getValue().offset());
-            }
-        }
-    }
-}
-```
-
-### Replay Messages
-
-```java
-@Service
-public class MessageReplayService {
-
-    @Autowired
-    private KafkaConsumer<String, String> kafkaConsumer;
-
-    public void replayLastHour(String topic) {
-        long oneHourAgo = Instant.now()
-            .minus(1, ChronoUnit.HOURS)
-            .toEpochMilli();
-
-        seekToTimestamp(topic, oneHourAgo);
-
-        int count = 0;
-        boolean reachedEnd = false;
-
-        while (!reachedEnd) {
-            ConsumerRecords<String, String> records =
-                kafkaConsumer.poll(Duration.ofSeconds(1));
-
-            for (ConsumerRecord<String, String> record : records) {
-                if (record.timestamp() > System.currentTimeMillis()) {
-                    reachedEnd = true;
-                    break;
-                }
-
-                reprocessEvent(record.value());
-                count++;
-            }
-
-            if (records.isEmpty()) {
-                reachedEnd = true;
-            }
-        }
-
-        log.info("Replayed {} messages from last hour", count);
-    }
-}
-```
-
-## Error Handling
-
-### Retry with Backoff
-
-```java
-@Service
-public class RetryableConsumer {
-
-    private static final int MAX_RETRIES = 3;
-
-    @Autowired
-    private DeadLetterQueueService dlqService;
-
-    @KafkaListener(topics = "orders", groupId = "retry-group")
-    public void consume(ConsumerRecord<String, String> record,
-                       Acknowledgment acknowledgment) {
-        int retryCount = 0;
-        boolean processed = false;
-
-        while (!processed && retryCount < MAX_RETRIES) {
-            try {
-                processOrder(record.value());
-                acknowledgment.acknowledge();
-                processed = true;
-
-                log.info("Processed successfully on attempt {}",
-                    retryCount + 1);
-
-            } catch (TransientException e) {
-                retryCount++;
-                log.warn("Transient error, retry {} of {}",
-                    retryCount, MAX_RETRIES, e);
-
-                if (retryCount < MAX_RETRIES) {
-                    // Exponential backoff
-                    long backoff = (long) Math.pow(2, retryCount) * 1000;
-                    sleep(backoff);
-                } else {
-                    log.error("Max retries exceeded");
-                    dlqService.send(record.topic(), record.key(),
-                        record.value(), "MAX_RETRIES");
-                    acknowledgment.acknowledge();  // Skip this message
-                }
-
-            } catch (PermanentException e) {
-                log.error("Permanent error, sending to DLQ", e);
-                dlqService.send(record.topic(), record.key(),
-                    record.value(), "PERMANENT_ERROR");
-                acknowledgment.acknowledge();  // Skip this message
-                processed = true;
-            }
-        }
-    }
-}
-```
-
-### Error Handling Handler
-
-```java
-@Configuration
-public class ErrorHandlingConfig {
-
-    @Bean
-    public ConsumerAwareErrorHandler errorHandler() {
-        return (thrownException, data, consumer) -> {
-            log.error("Error in consumer: {}", thrownException.getMessage());
-
-            ConsumerRecord<?, ?> record = (ConsumerRecord<?, ?>) data;
-
-            // Log error details
-            log.error("Failed record: topic={}, partition={}, offset={}",
-                record.topic(), record.partition(), record.offset());
-
-            // Send to DLQ
-            dlqService.send(record);
-
-            // Don't throw - message will be skipped
-        };
-    }
-}
-```
-
-## REST API Endpoints
-
-### Run Day 4 Demo
-
-```bash
-curl -X POST http://localhost:8080/api/training/day04/demo
-```
-
-### Auto-Commit Consumer
-
-```bash
-curl -X POST http://localhost:8080/api/training/day04/consume-auto \
-  -H "Content-Type: application/json" \
-  -d '{
-    "topic": "test-topic",
-    "groupId": "auto-commit-group",
-    "durationSeconds": 10
-  }'
-```
-
-### Manual-Commit Consumer
-
-```bash
-curl -X POST http://localhost:8080/api/training/day04/consume-manual \
-  -H "Content-Type: application/json" \
-  -d '{
-    "topic": "test-topic",
-    "groupId": "manual-commit-group",
-    "durationSeconds": 10
-  }'
-```
-
-### Seek Demo
-
-```bash
-curl -X POST http://localhost:8080/api/training/day04/seek-demo \
-  -H "Content-Type: application/json" \
-  -d '{
-    "topic": "test-topic",
-    "partition": 0,
-    "offset": 100
-  }'
 ```
 
 ## Hands-On Exercises
@@ -863,12 +1232,38 @@ docker exec kafka-training-kafka kafka-run-class \
   --broker-list localhost:9092 \
   --topic test-topic \
   --time $TIMESTAMP
-
-# Use REST API to seek
-curl -X POST http://localhost:8080/api/training/day04/seek-timestamp \
-  -H "Content-Type: application/json" \
-  -d "{\"topic\":\"test-topic\",\"timestamp\":$TIMESTAMP}"
 ```
+
+## Learning Track Guidance
+
+### Data Engineer Track (Recommended)
+
+**Focus Areas:**
+- CLI consumer commands (kafka-console-consumer)
+- Consumer group management (kafka-consumer-groups)
+- Pure Java KafkaConsumer API
+- Offset management strategies
+- Partition assignment strategies
+- Rebalance handling
+
+**Skills Gained:**
+- Platform-agnostic consumer knowledge
+- Transferable to any language (Python, Go, etc.)
+- Deep understanding of Kafka internals
+- Production troubleshooting capabilities
+
+### Java Developer Track (Optional)
+
+**Additional Topics:**
+- Spring Boot @KafkaListener
+- ConsumerFactory configuration
+- Acknowledgment modes
+- Error handling with ErrorHandler
+
+**When to Use:**
+- Building Spring Boot microservices
+- Need Spring dependency injection
+- Require Spring ecosystem integration
 
 ## Key Takeaways
 

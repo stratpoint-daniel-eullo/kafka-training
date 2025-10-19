@@ -2,7 +2,10 @@
 
 ## Program Structure
 
-This 8-day comprehensive Kafka training program is designed to take you from zero to production-ready in Apache Kafka using modern, container-first practices.
+This 8-day comprehensive Kafka training program is designed for **data engineers** learning Apache Kafka fundamentals. Master platform-agnostic Kafka skills using pure APIs, CLI tools, and container-first practices.
+
+!!! tip "Data Engineer First"
+    This training teaches **transferable Kafka knowledge** that works with any data platform - Spark, Flink, Python, Scala, or Java. No framework lock-in.
 
 ### Learning Phases
 
@@ -43,11 +46,11 @@ gantt
 - Message keys and partition assignment
 - Consumer offsets and commit strategies
 
-### Phase 2: Java Development (Days 3-4)
+### Phase 2: Producer & Consumer Development (Days 3-4)
 
 **Day 3: Producer Development**
 
-- Producer API deep dive
+- Pure KafkaProducer API deep dive
 - Synchronous vs asynchronous sending
 - Producer configurations and tuning
 - Error handling and retries
@@ -56,7 +59,7 @@ gantt
 
 **Day 4: Consumer Implementation**
 
-- Consumer API fundamentals
+- Pure KafkaConsumer API fundamentals
 - Consumer groups and load balancing
 - Partition assignment and rebalancing
 - Offset management strategies
@@ -270,14 +273,14 @@ Each day follows a consistent pattern:
 ### Technical Skills
 
 - [x] Apache Kafka architecture and operations
-- [x] Spring Boot Kafka integration
-- [x] Producer and consumer development
+- [x] Pure KafkaProducer and KafkaConsumer APIs
+- [x] Kafka CLI tools and workflows
 - [x] Stream processing with Kafka Streams
 - [x] Schema management with Avro
 - [x] Data integration with Kafka Connect
 - [x] Container orchestration with Docker & Kubernetes
-- [x] Integration testing with TestContainers
-- [x] Monitoring and observability
+- [x] Integration testing strategies
+- [x] Monitoring and observability with Prometheus
 - [x] Production deployment patterns
 
 ### Data Engineering Skills

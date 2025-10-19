@@ -1,6 +1,10 @@
 # Day 1 Exercises: Kafka Fundamentals
 
-## Exercise 1: Basic Topic Operations
+> **Learning Tracks:** These exercises focus on platform-agnostic Kafka fundamentals using CLI tools and pure Java AdminClient API. Data engineers should complete all exercises. Java developers may optionally explore Spring Boot Admin examples in the codebase.
+
+## Data Engineer Track Exercises (Recommended)
+
+### Exercise 1: Basic Topic Operations - CLI & AdminClient
 
 ### Objective
 Learn to create, list, and describe topics using both CLI and Java AdminClient.
@@ -65,7 +69,7 @@ Learn to create, list, and describe topics using both CLI and Java AdminClient.
 
 ---
 
-## Exercise 2: Understanding Partitions and Leaders
+### Exercise 2: Understanding Partitions and Leaders - Pure Java API
 
 ### Objective
 Explore how partitions work and understand partition leadership.
@@ -136,7 +140,7 @@ Explore how partitions work and understand partition leadership.
 
 ---
 
-## Exercise 3: Topic Configuration Management
+### Exercise 3: Topic Configuration Management - CLI & Java
 
 ### Objective
 Learn to manage topic configurations and understand their impact.
@@ -368,9 +372,42 @@ docker-compose exec kafka kafka-topics \
   --bootstrap-server localhost:9092
 ```
 
+## Java Developer Track Exercises (Optional)
+
+> **Java Developer Track Only**
+>
+> The exercises above use pure Kafka APIs which are platform-agnostic. For Spring Boot integration examples, explore the following in the codebase:
+
+### Spring Boot Admin Examples
+
+1. **Explore Spring Kafka Admin Bean**
+    ```bash
+    # Review the Spring Boot admin configuration
+    cat src/main/java/com/training/kafka/config/KafkaConfig.java
+    ```
+
+2. **REST API for Topic Management**
+    ```bash
+    # Start the Spring Boot application
+    mvn spring-boot:run
+
+    # Use REST endpoints to manage topics
+    curl http://localhost:8080/api/training/day01/topics
+    ```
+
+3. **Auto-Configuration Benefits**
+    - Spring Boot auto-configures AdminClient
+    - Properties loaded from application.yml
+    - Integration with Spring profiles
+    - REST endpoints for management
+
+**Note:** These Spring Boot features are optional additions. The core AdminClient API skills from the Data Engineer track apply to all Kafka implementations.
+
+---
+
 ## Key Learning Outcomes
 
-After completing these exercises, you should understand:
+After completing the Data Engineer track exercises, you should understand:
 1. **Topic Creation**: Both CLI and programmatic approaches
 2. **Partition Distribution**: How partitions are assigned to brokers
 3. **Configuration Management**: Different topic configurations and their purposes

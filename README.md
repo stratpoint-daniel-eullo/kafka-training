@@ -1,19 +1,40 @@
-# Apache Kafka Training Course with Spring Boot
+# Apache Kafka Training Course - Dual Learning Paths
 
-![Kafka Training](https://img.shields.io/badge/Apache%20Kafka-Training-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7.18-brightgreen)
-![Java](https://img.shields.io/badge/Java-11+-blue)
+![Kafka Training](https://img.shields.io/badge/Apache%20Kafka-3.8.0-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.4-brightgreen)
+![Java](https://img.shields.io/badge/Java-21-blue)
+![Python](https://img.shields.io/badge/Python-3.8+-blue)
 ![Confluent](https://img.shields.io/badge/Confluent-Platform-green)
 ![Docker](https://img.shields.io/badge/Docker-Supported-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
+## 🎯 **Choose Your Learning Path**
+
+This training offers **TWO distinct approaches** - choose based on your role and goals:
+
+### 📊 **Path 1: Data Engineers** → [README-DATA-ENGINEERS.md](./README-DATA-ENGINEERS.md)
+- **Focus**: Pure Kafka fundamentals, platform-agnostic
+- **For**: Data engineers using Spark, Flink, Python, or any platform
+- **What**: Raw Kafka APIs, CLI tools, Python + Java examples
+- **Entry**: `./bin/kafka-training-cli.sh` or `java -cp target/...`
+
+### 🚀 **Path 2: Java Developers** → **THIS README**
+- **Focus**: Spring Boot integration patterns
+- **For**: Java developers building microservices
+- **What**: Spring Kafka, REST APIs, Web UI
+- **Entry**: `mvn spring-boot:run` + Web browser
+
+> **⚠️ IMPORTANT**: If you're a data engineer, **stop reading here** and go to [README-DATA-ENGINEERS.md](./README-DATA-ENGINEERS.md) for the pure Kafka track.
+
+---
 
 ## 📚 Documentation
 
 **[View Complete Documentation](https://yourusername.github.io/kafka-training-java)** - Full MkDocs Material site with comprehensive guides, API reference, and architecture diagrams.
 
-## 🎯 Overview
+## 🎯 Overview (Java Developer Track)
 
-This comprehensive 8-day training course takes you from zero to proficient with Apache Kafka using **Spring Boot and Java**. Designed for developers of all levels, it provides hands-on experience with real-world scenarios and follows industry best practices with modern Spring Boot integration.
+This comprehensive 8-day training course takes you from zero to proficient with Apache Kafka using **Spring Boot and Java**. Designed for Java developers building microservices and web applications, it provides hands-on experience with Spring Boot integration patterns and modern enterprise practices.
 
 ### 🚀 **EventMart Progressive Project**
 Build a complete **e-commerce event streaming platform** throughout the 8 days using **Spring Boot**! Each day adds new functionality, culminating in a professional demo showcasing all Kafka concepts with Spring Boot best practices. Perfect for portfolios and job interviews.

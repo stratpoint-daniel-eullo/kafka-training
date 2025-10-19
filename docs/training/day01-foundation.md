@@ -1,14 +1,17 @@
 # Day 1: Kafka Fundamentals and Foundation
 
+> **Primary Audience:** Data Engineers
+> **Learning Track:** Platform-agnostic Kafka fundamentals. CLI tools and pure APIs work for all languages (Java, Python, Go, Scala, etc.). Spring Boot integration is optional.
+
 ## Learning Objectives
 
 By the end of Day 1, you will:
 
-- [x] Understand Apache Kafka architecture and core concepts
-- [x] Set up a containerized Kafka development environment
-- [x] Create and manage topics using AdminClient API
-- [x] Understand producers, consumers, and brokers
-- [x] Run basic Spring Boot Kafka examples
+- [ ] Understand Apache Kafka architecture and core concepts
+- [ ] Set up a containerized Kafka development environment
+- [ ] Create and manage topics using AdminClient API
+- [ ] Understand producers, consumers, and brokers
+- [ ] Run Kafka examples using CLI or Spring Boot (based on your track)
 
 ## What is Apache Kafka?
 
@@ -178,57 +181,64 @@ docker exec kafka-training-kafka \
 
 ## Topic Operations with AdminClient
 
-### Spring Boot AdminClient Service
+### Pure Java AdminClient (Data Engineer Track - Recommended)
 
-The training provides a Spring Boot service for topic management:
+Use the raw Kafka AdminClient API to manage topics programmatically:
 
 ```java
-@Service
-public class Day01FoundationService {
+// Pure Kafka AdminClient - no Spring dependencies
+import org.apache.kafka.clients.admin.*;
+import java.util.*;
 
-    @Autowired
-    private KafkaAdmin kafkaAdmin;
+public class TopicManager {
 
-    public Map<String, Object> demonstrateFoundation() {
-        // Create AdminClient
-        try (AdminClient adminClient = AdminClient.create(
-            kafkaAdmin.getConfigurationProperties())) {
+    public static void main(String[] args) throws Exception {
+        // Configure AdminClient
+        Properties props = new Properties();
+        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
 
-            // List topics
-            Set<String> topics = adminClient.listTopics()
-                .names()
-                .get();
+        try (AdminClient adminClient = AdminClient.create(props)) {
+
+            // Create a new topic
+            NewTopic newTopic = new NewTopic("my-first-topic", 3, (short) 1);
+            CreateTopicsResult result = adminClient.createTopics(
+                Collections.singletonList(newTopic)
+            );
+            result.all().get();
+            System.out.println("Topic created: my-first-topic");
+
+            // List all topics
+            Set<String> topics = adminClient.listTopics().names().get();
+            System.out.println("All topics: " + topics);
 
             // Get cluster info
-            Collection<Node> nodes = adminClient.describeCluster()
-                .nodes()
-                .get();
-
-            return Map.of(
-                "topics", topics,
-                "brokers", nodes.size()
-            );
+            Collection<Node> nodes = adminClient.describeCluster().nodes().get();
+            System.out.println("Brokers in cluster: " + nodes.size());
         }
     }
 }
 ```
 
+**Location**: `src/main/java/com/training/kafka/Day01Foundation/BasicTopicOperations.java`
+
+**Run**:
+```bash
+java -cp target/kafka-training-java-1.0.0.jar \
+  com.training.kafka.Day01Foundation.BasicTopicOperations
+```
+
 ### Create Topics
 
-=== "REST API"
+=== "CLI (Data Engineer Track)"
 
     ```bash
-    # Run Day 1 demonstration
-    curl -X POST http://localhost:8080/api/training/day01/demo
+    # Using custom training CLI
+    ./bin/kafka-training-cli.sh create-topic \
+      --name my-first-topic \
+      --partitions 3 \
+      --replication-factor 1
 
-    # Create EventMart topics
-    curl -X POST http://localhost:8080/api/training/eventmart/topics
-    ```
-
-=== "Command Line"
-
-    ```bash
-    # Create a topic with 3 partitions
+    # Or using native Kafka tools
     docker exec kafka-training-kafka kafka-topics \
       --bootstrap-server localhost:9092 \
       --create \
@@ -243,14 +253,22 @@ public class Day01FoundationService {
       --topic my-first-topic
     ```
 
-=== "Java Code"
+=== "Pure Java (Data Engineer Track)"
 
     ```java
-    @Service
-    public class TopicService {
+    // Raw Kafka AdminClient API - no Spring
+    import org.apache.kafka.clients.admin.*;
 
-        public void createTopic(String topicName, int partitions) {
-            try (AdminClient admin = AdminClient.create(config)) {
+    public class TopicCreator {
+
+        public static void createTopic(String topicName, int partitions)
+            throws Exception {
+
+            Properties props = new Properties();
+            props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
+                "localhost:9092");
+
+            try (AdminClient admin = AdminClient.create(props)) {
                 NewTopic newTopic = new NewTopic(
                     topicName,
                     partitions,
@@ -262,11 +280,124 @@ public class Day01FoundationService {
                 );
 
                 result.all().get();
-                log.info("Created topic: {}", topicName);
+                System.out.println("Created topic: " + topicName);
             }
         }
     }
     ```
+
+=== "Spring Boot (Java Developer Track)"
+
+    ```java
+    @Service
+    public class Day01FoundationService {
+
+        @Autowired
+        private KafkaAdmin kafkaAdmin;
+
+        public Map<String, Object> demonstrateFoundation() {
+            // Spring Boot wraps AdminClient
+            try (AdminClient adminClient = AdminClient.create(
+                kafkaAdmin.getConfigurationProperties())) {
+
+                // List topics
+                Set<String> topics = adminClient.listTopics()
+                    .names()
+                    .get();
+
+                // Get cluster info
+                Collection<Node> nodes = adminClient.describeCluster()
+                    .nodes()
+                    .get();
+
+                return Map.of(
+                    "topics", topics,
+                    "brokers", nodes.size()
+                );
+            }
+        }
+    }
+    ```
+
+=== "REST API (Java Developer Track)"
+
+    ```bash
+    # Run Day 1 demonstration
+    curl -X POST http://localhost:8080/api/training/day01/demo
+
+    # Create EventMart topics
+    curl -X POST http://localhost:8080/api/training/eventmart/topics
+    ```
+
+=== "Python (Data Engineer Track)"
+
+    **Complete Example**: `examples/python/day01_admin.py`
+
+    ```bash
+    # Run the Python AdminClient example
+    python examples/python/day01_admin.py
+    ```
+
+    **Key code from day01_admin.py:**
+
+    ```python
+    from kafka.admin import KafkaAdminClient, NewTopic
+
+    # Create AdminClient (same concept as Java AdminClient.create())
+    admin_client = KafkaAdminClient(
+        bootstrap_servers=BOOTSTRAP_SERVERS,
+        client_id='python-admin-client'
+    )
+
+    # Create topics with configurations
+    topics = [
+        NewTopic(
+            name='python-demo-topic-1',
+            num_partitions=3,
+            replication_factor=1
+        ),
+        NewTopic(
+            name='python-demo-topic-2',
+            num_partitions=6,
+            replication_factor=1,
+            topic_configs={
+                'retention.ms': '86400000',  # 1 day
+                'compression.type': 'snappy'
+            }
+        )
+    ]
+
+    result = admin_client.create_topics(new_topics=topics, validate_only=False)
+
+    # List all topics
+    topics_list = admin_client.list_topics()
+
+    # Get cluster metadata
+    cluster_metadata = admin_client.describe_cluster()
+    ```
+
+    **Install Python Dependencies:**
+
+    ```bash
+    # Install kafka-python library
+    pip install kafka-python
+
+    # Or install all training dependencies
+    pip install -r examples/python/requirements.txt
+    ```
+
+    **Python AdminClient Benefits:**
+    - **Platform-Agnostic**: Same Kafka operations as Java
+    - **Interoperable**: Manage topics created by any Kafka client
+    - **Data Pipelines**: Integrate with Airflow, Prefect, Luigi
+    - **Automation**: Deploy topics as part of infrastructure as code
+
+    See the complete working example at `examples/python/day01_admin.py` for demonstrations of:
+    - Creating topics with configurations
+    - Listing and describing topics
+    - Getting cluster metadata
+    - Deleting topics
+    - Error handling
 
 ### List Topics
 
@@ -432,7 +563,23 @@ docker exec -it kafka-training-kafka kafka-console-producer \
 # Same keys (user1, user2) go to same partitions!
 ```
 
-### Exercise 4: Use Spring Boot API
+### Exercise 4: CLI and Pure Java Practice (Data Engineer Track)
+
+```bash
+# Use the training CLI wrapper
+./bin/kafka-training-cli.sh --day 1 --demo foundation
+
+# Or run pure Java directly
+java -cp target/kafka-training-java-1.0.0.jar \
+  com.training.kafka.Day01Foundation.BasicTopicOperations
+
+# Practice with native Kafka CLI tools
+docker exec kafka-training-kafka kafka-topics \
+  --bootstrap-server localhost:9092 \
+  --list
+```
+
+### Exercise 5: Spring Boot API (Java Developer Track - Optional)
 
 ```bash
 # Run Day 1 foundation demo
@@ -450,7 +597,24 @@ curl -X POST http://localhost:8080/api/training/day01/demo | jq
 }
 ```
 
-## EventMart Integration
+## Project Integration
+
+### Data Engineer Track
+
+Apply concepts with pure Java examples:
+
+```bash
+# Run individual topic management examples
+java -cp target/kafka-training-java-1.0.0.jar \
+  com.training.kafka.Day01Foundation.BasicTopicOperations
+
+# Practice with different configurations
+# - Vary partition counts
+# - Change replication factors
+# - Test different topic names
+```
+
+### Java Developer Track - EventMart Integration
 
 Apply today's concepts to the EventMart project:
 
@@ -524,17 +688,38 @@ Ready to practice what you learned? Complete the **[Day 1 Exercises](../exercise
 
 These hands-on exercises will solidify your understanding before moving forward.
 
+## Learning Track Guidance
+
+This training supports two distinct approaches:
+
+### Data Engineer Track (Recommended)
+- **Focus**: Pure Kafka concepts, CLI tools, platform-agnostic
+- **Examples**: `src/main/java/com/training/kafka/Day01Foundation/`
+- **Run**: `./bin/kafka-training-cli.sh` or `java -cp target/*.jar`
+- **Best for**: Data pipelines, platform integration, transferable skills
+
+### Java Developer Track
+- **Focus**: Spring Boot integration, web UI, REST APIs
+- **Examples**: `src/main/java/com/training/kafka/services/Day01FoundationService.java`
+- **Run**: `mvn spring-boot:run` then use `http://localhost:8080`
+- **Best for**: Microservices, Java-specific development, EventMart project
+
+**Both tracks cover the same Kafka concepts** - choose based on your role and goals.
+
+See [LEARNING-PATHS.md](../../LEARNING-PATHS.md) for detailed comparison.
+
 ## Next Steps
 
 Ready for Day 2? Continue to [Day 2: Data Flow and Message Patterns](day02-dataflow.md)
 
 Or explore:
 
+- **[README-DATA-ENGINEERS.md](../../README-DATA-ENGINEERS.md)** - CLI-first track
+- **[WEB-UI-GETTING-STARTED.md](../../WEB-UI-GETTING-STARTED.md)** - Spring Boot track
 - [Container Development Guide](../containers/docker-basics.md)
-- [API Reference](../api/training-endpoints.md)
 - [Architecture Overview](../architecture/system-design.md)
-- **[All Practice Exercises](../exercises/index.md)** - Progressive challenges for capstone presentation
+- **[All Practice Exercises](../exercises/index.md)** - Hands-on challenges
 
 ---
 
-**Practice is key!** Spend time experimenting with topics, partitions, and the AdminClient API before moving to Day 2.
+**Practice is key!** Spend time experimenting with topics, partitions, and the AdminClient API (either via CLI or Spring Boot) before moving to Day 2.

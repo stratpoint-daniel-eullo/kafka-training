@@ -1,6 +1,10 @@
 # Day 2 Exercises: Data Flow and Message Patterns
 
-## Exercise 1: Producer Partitioning Strategies
+> **Learning Tracks:** These exercises focus on platform-agnostic Kafka data flow patterns using CLI tools and pure Java Producer/Consumer APIs. Data engineers should complete all exercises.
+
+## Data Engineer Track Exercises (Recommended)
+
+### Exercise 1: Producer Partitioning Strategies - CLI & Pure Java
 
 ### Objective
 Understand how message keys affect partitioning and learn different partitioning strategies.
@@ -69,7 +73,7 @@ docker-compose exec kafka kafka-console-consumer --bootstrap-server localhost:90
 
 ---
 
-## Exercise 2: Consumer Groups and Load Balancing
+### Exercise 2: Consumer Groups and Load Balancing - CLI & Java API
 
 ### Objective
 Explore how consumer groups distribute work and handle rebalancing.
@@ -149,7 +153,7 @@ mvn exec:java -Dexec.mainClass="com.training.kafka.Day02DataFlow.InteractiveProd
 
 ---
 
-## Exercise 3: Message Ordering and Delivery Guarantees
+### Exercise 3: Message Ordering and Delivery Guarantees - Pure Java
 
 ### Objective
 Understand ordering guarantees and delivery semantics in Kafka.
@@ -216,7 +220,7 @@ Understand ordering guarantees and delivery semantics in Kafka.
 
 ---
 
-## Exercise 4: Consumer Offset Management
+### Exercise 4: Consumer Offset Management - CLI & Java API
 
 ### Objective
 Master different offset management strategies and their implications.
@@ -388,9 +392,43 @@ docker-compose exec kafka kafka-consumer-groups --bootstrap-server localhost:909
 # 3. Increase partition count (requires topic recreation)
 ```
 
+## Java Developer Track Exercises (Optional)
+
+> **Java Developer Track Only**
+>
+> The exercises above use pure Kafka APIs. For Spring Boot integration, explore these examples in the codebase:
+
+### Spring Kafka Integration Examples
+
+1. **KafkaTemplate for Sending**
+    ```bash
+    # Review Spring Boot producer examples
+    cat src/main/java/com/training/kafka/services/Day02DataFlowService.java
+    ```
+
+2. **@KafkaListener for Consuming**
+    - Annotation-based consumers
+    - Automatic consumer group management
+    - Spring's message conversion
+
+3. **REST API Endpoints**
+    ```bash
+    # Start Spring Boot application
+    mvn spring-boot:run
+
+    # Send messages via REST API
+    curl -X POST http://localhost:8080/api/training/day02/send \
+      -H "Content-Type: application/json" \
+      -d '{"key":"user1","value":"login"}'
+    ```
+
+**Note:** Spring Boot adds convenience layers, but understanding the underlying Kafka APIs from the Data Engineer track is essential for troubleshooting and optimization.
+
+---
+
 ## Key Learning Outcomes
 
-After completing these exercises, you should understand:
+After completing the Data Engineer track exercises, you should understand:
 
 1. **Partitioning Strategy Impact**: How keys affect message distribution and ordering
 2. **Consumer Group Dynamics**: Load balancing and rebalancing behavior

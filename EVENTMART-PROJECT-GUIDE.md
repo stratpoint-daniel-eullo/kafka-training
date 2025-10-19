@@ -1,5 +1,11 @@
 # EventMart Progressive Project Guide
 
+> **Java Developer Track Only**
+>
+> This is a **Spring Boot project guide** for the Java Developer track. Data engineers using the CLI-based track should focus on individual pure Kafka examples in `src/main/java/com/training/kafka/DayXX*/`.
+>
+> **Choose your track**: [START-HERE.md](./START-HERE.md)
+
 ## 🎯 Complete Training Transformation
 
 This guide documents the **EventMart Progressive Project Framework** - a comprehensive solution that transforms the Kafka training from isolated daily examples into a **cohesive, demonstrable, real-world project** that trainees build throughout the 8-day course.

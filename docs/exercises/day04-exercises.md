@@ -1,6 +1,10 @@
 # Day 4 Exercises: Consumer Implementation
 
-## Exercise 1: Basic Consumer Implementation
+> **Learning Tracks:** These exercises focus on pure Kafka Consumer API for platform-agnostic skills. Data engineers should complete all exercises.
+
+## Data Engineer Track Exercises (Recommended)
+
+### Exercise 1: Basic Consumer Implementation - Pure Kafka API
 
 ### Objective
 Master basic consumer configuration, offset management, and message processing.
@@ -39,7 +43,7 @@ Master basic consumer configuration, offset management, and message processing.
 
 ---
 
-## Exercise 2: Consumer Group Dynamics
+### Exercise 2: Consumer Group Dynamics - CLI & Java API
 
 ### Objective
 Understand how consumer groups scale and handle rebalancing.
@@ -522,9 +526,41 @@ props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "300000");
 // Implement exactly-once semantics with transactions
 ```
 
+## Java Developer Track Exercises (Optional)
+
+> **Java Developer Track Only**
+>
+> The exercises above use pure Kafka Consumer API. For Spring Boot integration:
+
+### Spring Kafka Consumer Examples
+
+1. **@KafkaListener Annotation**
+    ```bash
+    # Review Spring Boot consumer examples
+    cat src/main/java/com/training/kafka/services/Day04ConsumerService.java
+    ```
+
+2. **Configuration**
+    - Automatic consumer group management
+    - Annotation-driven consumers
+    - Spring message converters
+
+3. **REST API Monitoring**
+    ```bash
+    # Start Spring Boot application
+    mvn spring-boot:run
+
+    # Check consumer status via REST
+    curl http://localhost:8080/api/training/day04/consumer/status
+    ```
+
+**Note:** @KafkaListener simplifies consumer implementation but abstracts away important details. Understanding the core Consumer API is essential for troubleshooting.
+
+---
+
 ## Key Learning Outcomes
 
-After completing these exercises, you should understand:
+After completing the Data Engineer track exercises, you should understand:
 
 1. **Consumer Groups**: Load balancing and fault tolerance
 2. **Offset Management**: Auto vs manual commit trade-offs

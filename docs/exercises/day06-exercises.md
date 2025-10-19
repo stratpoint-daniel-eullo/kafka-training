@@ -1,6 +1,10 @@
 # Day 6 Exercises: Schema Management with Avro
 
-## Exercise 1: Basic Avro Implementation
+> **Learning Tracks:** These exercises focus on Avro serialization and Schema Registry - platform-agnostic skills. Data engineers should complete all exercises.
+
+## Data Engineer Track Exercises (Recommended)
+
+### Exercise 1: Basic Avro Implementation - Schema Definition & Code Gen
 
 ### Objective
 Learn Avro schema definition, code generation, and basic producer/consumer implementation.
@@ -53,7 +57,7 @@ mvn avro:schema
 
 ---
 
-## Exercise 2: Schema Evolution
+### Exercise 2: Schema Evolution - Compatibility Testing
 
 ### Objective
 Understand schema evolution patterns and compatibility testing.
@@ -123,7 +127,7 @@ Understand schema evolution patterns and compatibility testing.
 
 ---
 
-## Exercise 3: Schema Registry Management
+### Exercise 3: Schema Registry Management - CLI & REST API
 
 ### Objective
 Learn to manage schemas programmatically and understand compatibility levels.
@@ -390,9 +394,38 @@ props.put("schema.registry.cache.capacity", "1000");
 props.put("specific.avro.reader", "true");
 ```
 
+## Java Developer Track Exercises (Optional)
+
+> **Java Developer Track Only**
+>
+> Avro is already platform-agnostic. Spring Boot can add convenience features:
+
+### Spring Boot Avro Integration
+
+1. **Spring Kafka Avro Serializer Configuration**
+    ```bash
+    # Review Spring configuration for Avro
+    cat src/main/resources/application.yml | grep -A 10 avro
+    ```
+
+2. **Auto-Configuration Benefits**
+    - Schema Registry client auto-configured
+    - Serializer/deserializer beans
+    - Properties from application.yml
+
+3. **Service Integration**
+    ```bash
+    # Review Spring Boot Avro service
+    cat src/main/java/com/training/kafka/services/Day06SchemaService.java
+    ```
+
+**Note:** Avro serialization and Schema Registry are platform-agnostic. Spring Boot mainly simplifies configuration. The core Avro knowledge from Data Engineer track is essential.
+
+---
+
 ## Key Learning Outcomes
 
-After completing these exercises, you should understand:
+After completing the Data Engineer track exercises, you should understand:
 
 1. **Schema Definition**: Avro schema syntax and data types
 2. **Code Generation**: Maven plugin integration

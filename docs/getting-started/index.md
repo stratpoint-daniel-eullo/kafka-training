@@ -1,33 +1,36 @@
 # Getting Started
 
-Welcome to the Kafka Training program! This section will help you set up your environment and start learning Apache Kafka with a container-first approach.
+Welcome to the Kafka Training program for data engineers! This section will help you set up your environment and start learning Apache Kafka with platform-agnostic, container-first practices.
+
+!!! tip "Data Engineer Focused"
+    This training teaches pure Kafka fundamentals using CLI tools and raw APIs - no framework lock-in. Perfect for data engineers working with Spark, Flink, Python, or any data platform.
 
 ## Choose Your Learning Path
 
-### Complete Beginner (New to Kafka)
+### Data Engineer (Recommended)
 
-If you're new to Kafka or distributed systems:
+If you're a data engineer learning Kafka:
 
-1. Read the [Overview](overview.md) to understand what you'll learn
-2. Check [Prerequisites](prerequisites.md) and install required tools
+1. Read the [Overview](overview.md) to understand the curriculum
+2. Check [Prerequisites](prerequisites.md) and install Docker + Java
 3. Follow the [Installation Guide](installation.md) for detailed setup
-4. Run your first Kafka application with [Quick Start](quick-start.md)
+4. Run pure Kafka examples with [Quick Start](quick-start.md)
 
 **Estimated Time**: 30-45 minutes
 
-### Experienced Developer (Know Java, New to Kafka)
+### Java Developer (Alternative Spring Boot Track)
 
-If you're comfortable with Java but new to Kafka:
+If you want Spring Boot integration patterns:
 
 1. Verify [Prerequisites](prerequisites.md) are installed
-2. Jump to [Quick Start](quick-start.md) for 5-minute setup
+2. Jump to [Quick Start](quick-start.md) and choose Spring Boot tab
 3. Start with [Day 1 Training](../training/day01-foundation.md)
 
 **Estimated Time**: 10-15 minutes
 
-### Kafka User (Want to Deepen Knowledge)
+### Experienced Kafka User
 
-If you've used Kafka before:
+If you've used Kafka before and want container-first workflows:
 
 1. Verify [Prerequisites](prerequisites.md)
 2. Clone and run with [Quick Start](quick-start.md)
@@ -41,19 +44,20 @@ If you've used Kafka before:
 This training provides:
 
 - **8 Days of Structured Learning** - From basics to production
-- **90+ Integration Tests** - Using TestContainers with real Kafka
+- **Pure Kafka APIs** - No framework abstractions, transferable skills
+- **CLI-First Workflows** - Master native Kafka command-line tools
 - **Complete Development Environment** - Docker Compose setup
 - **Production Deployment** - Kubernetes manifests and guides
-- **REST API** - Spring Boot application with JSON endpoints
 - **EventMart Project** - Real-world e-commerce platform
+- **Optional Spring Boot Track** - REST API and web UI examples
 
 ## Quick Setup Overview
 
 ```mermaid
 graph LR
     A[Install<br/>Prerequisites] --> B[Clone<br/>Repository]
-    B --> C[Start<br/>Docker Compose]
-    C --> D[Test<br/>REST API]
+    B --> C[Start<br/>Kafka with Docker]
+    C --> D[Run<br/>CLI Examples]
     D --> E[Begin<br/>Training]
 
     style A fill:#ff6600,stroke:#333,stroke-width:2px,color:#fff

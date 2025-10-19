@@ -1,15 +1,17 @@
-# Docker Basics for Data Engineers
+# Docker Basics for Kafka Applications
+
+> **Both Tracks:** This guide covers Docker fundamentals applicable to both Data Engineer and Java Developer tracks. Container concepts work the same whether you're running pure Kafka clients or Spring Boot applications.
 
 ## Learning Objectives
 
 After reading this guide, you will understand:
 
-- Docker fundamentals for data engineering
+- Docker fundamentals for Kafka development
 - Container vs image concepts
 - Port mapping and networking
 - Volume management and persistence
 - Essential Docker commands
-- Dockerfile best practices
+- Dockerfile best practices for Kafka applications
 
 ## What is Docker?
 
@@ -20,15 +22,15 @@ graph TB
     subgraph "Host Machine"
         DE[Docker Engine]
         subgraph "Container 1"
-            A1[Application]
+            A1[Kafka Producer]
             D1[Dependencies]
         end
         subgraph "Container 2"
-            A2[Application]
+            A2[Kafka Consumer]
             D2[Dependencies]
         end
         subgraph "Container 3"
-            A3[Application]
+            A3[Kafka Streams]
             D3[Dependencies]
         end
     end
@@ -43,7 +45,7 @@ graph TB
     style A3 fill:#ff6600,stroke:#333,stroke-width:2px,color:#fff
 ```
 
-### Why Docker for Data Engineers?
+### Why Docker for Kafka Development?
 
 1. **Consistent Environments** - Same behavior in dev, test, and production
 2. **Isolation** - Dependencies don't conflict
@@ -69,10 +71,10 @@ docker pull confluentinc/cp-kafka:7.5.0
 docker rmi confluentinc/cp-kafka:7.5.0
 
 # Build an image
-docker build -t kafka-training:latest .
+docker build -t kafka-app:latest .
 
 # Tag an image
-docker tag kafka-training:latest myregistry/kafka-training:v1.0
+docker tag kafka-app:latest myregistry/kafka-app:v1.0
 ```
 
 ### Docker Containers
@@ -128,7 +130,7 @@ docker run -p <host-port>:<container-port> image-name
 
 ```bash
 # Single port mapping
-docker run -p 8080:8080 kafka-training-app
+docker run -p 8080:8080 kafka-app
 
 # Multiple port mappings
 docker run \
@@ -138,24 +140,24 @@ docker run \
   confluentinc/cp-kafka:7.5.0
 
 # All interfaces
-docker run -p 0.0.0.0:8080:8080 kafka-training-app
+docker run -p 0.0.0.0:8080:8080 kafka-app
 
 # Random host port
-docker run -p 8080 kafka-training-app
+docker run -p 8080 kafka-app
 
 # Map to different host port
-docker run -p 8081:8080 kafka-training-app
+docker run -p 8081:8080 kafka-app
 ```
 
-### Kafka Training Port Mappings
+### Common Kafka Port Mappings
 
 ```bash
 # Kafka Broker
 9092:9092     # Kafka external port
-29092:29092   # Kafka internal port
+29092:29092   # Kafka internal port (Docker network)
 
-# Spring Boot Application
-8080:8080     # REST API (JSON responses)
+# Kafka Application (CLI or Spring Boot)
+8080:8080     # HTTP API (if using REST interface)
 
 # Kafka UI
 8081:8080     # Visual Kafka management (web browser)
@@ -196,13 +198,13 @@ docker run --network kafka-network --name kafka \
 **Host:**
 ```bash
 # Container uses host network directly
-docker run --network host kafka-training-app
+docker run --network host kafka-app
 ```
 
 **None:**
 ```bash
 # No networking
-docker run --network none kafka-training-app
+docker run --network none kafka-app
 ```
 
 ### Network Commands
@@ -236,6 +238,10 @@ Containers on the same network can communicate using container names:
 KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
 
 # Application can connect to Kafka using hostname
+# Pure Kafka client:
+bootstrap.servers=kafka:9092
+
+# Spring Boot application:
 SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 ```
 
@@ -268,25 +274,25 @@ docker volume rm kafka-data
 ```bash
 # Mount host directory into container
 docker run -v /host/path:/container/path \
-  kafka-training-app
+  kafka-app
 
 # Mount current directory
 docker run -v $(pwd):/app \
-  kafka-training-app
+  kafka-app
 
 # Read-only mount
 docker run -v /host/path:/container/path:ro \
-  kafka-training-app
+  kafka-app
 ```
 
 **tmpfs Mounts:**
 ```bash
 # Store in memory (lost on container stop)
 docker run --tmpfs /tmp \
-  kafka-training-app
+  kafka-app
 ```
 
-### Kafka Training Volumes
+### Typical Kafka Volumes
 
 ```yaml
 volumes:
@@ -437,39 +443,42 @@ docker version
 
 ## Dockerfile Best Practices
 
-### Basic Dockerfile
+### Basic Dockerfile for Kafka Client Application
 
 ```dockerfile
 # Use official base image
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy application
-COPY target/kafka-training-*.jar app.jar
+# Copy application JAR
+COPY target/kafka-app-*.jar app.jar
 
-# Expose port
+# Expose port (if using HTTP interface)
 EXPOSE 8080
 
 # Run application
 ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
 
-### Multi-Stage Build
+### Multi-Stage Build for Java Applications
 
 ```dockerfile
 # Stage 1: Build
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
+RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/kafka-training-*.jar app.jar
+
+# Copy only JAR from build stage
+COPY --from=build /app/target/kafka-app-*.jar app.jar
 
 # Add non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
@@ -477,7 +486,7 @@ USER appuser
 
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
+  CMD wget -q --spider http://localhost:8080/health || exit 1
 
 ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \
@@ -490,7 +499,7 @@ ENTRYPOINT ["java", \
 
 1. **Use Official Base Images**
 ```dockerfile
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 ```
 
 2. **Use Specific Tags**
@@ -499,7 +508,7 @@ FROM eclipse-temurin:17-jre-alpine
 FROM openjdk:latest
 
 # Good
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 ```
 
 3. **Minimize Layers**
@@ -608,10 +617,10 @@ docker-compose up -d --scale kafka=3
 
 ## Practical Examples
 
-### Run Kafka Training Stack
+### Run Kafka Infrastructure
 
 ```bash
-# Start complete stack
+# Start complete Kafka stack
 cd kafka-training-java
 docker-compose up -d
 
@@ -621,30 +630,56 @@ docker-compose logs -f
 # Execute command in Kafka
 docker-compose exec kafka kafka-topics --list --bootstrap-server localhost:9092
 
+# Stop everything
+docker-compose down
+```
+
+### Running Pure Kafka Client (Data Engineer Track)
+
+```bash
+# Run a Kafka consumer in a container
+docker run -it --network kafka-network \
+  confluentinc/cp-kafka:7.5.0 \
+  kafka-console-consumer \
+  --bootstrap-server kafka:9092 \
+  --topic user-events \
+  --from-beginning
+
+# Run a Kafka producer
+docker run -it --network kafka-network \
+  confluentinc/cp-kafka:7.5.0 \
+  kafka-console-producer \
+  --bootstrap-server kafka:9092 \
+  --topic user-events
+```
+
+### Running Spring Boot Application (Java Developer Track - Optional)
+
+```bash
 # Access Spring Boot shell
 docker-compose exec app bash
 
-# Stop everything
-docker-compose down
+# View application logs
+docker-compose logs -f app
 ```
 
 ### Debugging Containers
 
 ```bash
 # View container logs
-docker logs -f kafka-training-app
+docker logs -f kafka-app
 
 # Shell into container
-docker exec -it kafka-training-app bash
+docker exec -it kafka-app bash
 
 # Copy files from container
-docker cp kafka-training-app:/app/logs/app.log ./local-logs/
+docker cp kafka-app:/app/logs/app.log ./local-logs/
 
 # Copy files to container
-docker cp ./config.yml kafka-training-app:/app/config.yml
+docker cp ./config.yml kafka-app:/app/config.yml
 
 # Inspect container details
-docker inspect kafka-training-app | jq
+docker inspect kafka-app | jq
 ```
 
 ### Clean Up
@@ -705,6 +740,7 @@ docker image prune
 
 ## Next Steps
 
+- Learn about [Docker Compose](docker-compose.md) for multi-container setups
 - Learn about [Development Workflow](development-workflow.md) with Docker
 - Explore [TestContainers](testcontainers.md) for integration testing
 - Review [Best Practices](best-practices.md) for production containers

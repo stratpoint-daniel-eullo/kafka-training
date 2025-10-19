@@ -1,5 +1,8 @@
 # Day 5: Schema Registry and Avro
 
+> **Primary Audience:** Data Engineers
+> **Learning Track:** Platform-agnostic schema management with Avro. CLI and pure Java API shown first, Spring Boot integration is optional.
+
 ## Learning Objectives
 
 By the end of Day 5, you will:
@@ -174,9 +177,321 @@ Avro is a binary serialization format with schema support.
 }
 ```
 
-## Schema Registry Setup
+## CLI Approach (Data Engineer Track)
 
-### Maven Dependencies
+### Schema Registry CLI Commands
+
+```bash
+# List all schemas
+curl http://localhost:8081/subjects
+
+# Register a new schema
+curl -X POST http://localhost:8081/subjects/users-value/versions \
+  -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+  -d '{"schema": "{\"type\":\"record\",\"name\":\"User\",\"namespace\":\"com.example\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"},{\"name\":\"name\",\"type\":\"string\"}]}"}'
+
+# Get schema by ID
+curl http://localhost:8081/schemas/ids/1
+
+# Get latest version of a schema
+curl http://localhost:8081/subjects/users-value/versions/latest
+
+# Check compatibility
+curl -X POST http://localhost:8081/compatibility/subjects/users-value/versions/latest \
+  -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+  -d '{"schema": "..."}'
+
+# Set compatibility mode
+curl -X PUT http://localhost:8081/config/users-value \
+  -H "Content-Type: application/json" \
+  -d '{"compatibility": "BACKWARD"}'
+```
+
+### Producing with Avro CLI
+
+```bash
+# Produce Avro messages using kafka-avro-console-producer
+kafka-avro-console-producer \
+  --broker-list localhost:9092 \
+  --topic users-avro \
+  --property value.schema='{"type":"record","name":"User","fields":[{"name":"id","type":"string"},{"name":"name","type":"string"}]}' \
+  --property schema.registry.url=http://localhost:8081
+
+# Then enter JSON data (converted to Avro automatically):
+{"id": "user1", "name": "Alice"}
+{"id": "user2", "name": "Bob"}
+```
+
+### Consuming with Avro CLI
+
+```bash
+# Consume Avro messages
+kafka-avro-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic users-avro \
+  --from-beginning \
+  --property schema.registry.url=http://localhost:8081
+
+# Output shows deserialized data:
+# {"id":"user1","name":"Alice"}
+# {"id":"user2","name":"Bob"}
+```
+
+## Pure Java Implementation (Data Engineer Track)
+
+> **See Working Example**: `src/main/java/com/training/kafka/Day06Schemas/AvroProducer.java`
+
+This project includes a complete, production-ready Avro producer implementation. Below are the key concepts from the actual code.
+
+### Pure Java Avro Producer Configuration
+
+From `AvroProducer.java:29-50`:
+
+```java
+public AvroProducer(String bootstrapServers, String schemaRegistryUrl, String topicName) {
+    this.topicName = topicName;
+
+    Properties props = new Properties();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+    props.put(ProducerConfig.CLIENT_ID_CONFIG, "avro-producer");
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
+
+    // Schema Registry configuration
+    props.put("schema.registry.url", schemaRegistryUrl);
+    props.put("auto.register.schemas", "true");
+    props.put("use.latest.version", "true");
+
+    // Producer settings for reliability
+    props.put(ProducerConfig.ACKS_CONFIG, "all");
+    props.put(ProducerConfig.RETRIES_CONFIG, 3);
+    props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+
+    this.producer = new KafkaProducer<>(props);
+}
+```
+
+**Key Configuration Points:**
+- `KafkaAvroSerializer` handles Avro serialization
+- `schema.registry.url` points to Schema Registry
+- `auto.register.schemas=true` automatically registers new schemas
+- Idempotence enabled for exactly-once semantics
+
+### Sending Avro Messages
+
+From `AvroProducer.java:55-92`:
+
+```java
+public void sendUserEvent(String userId, ActionType action, Map<String, String> properties) {
+    // Create device info (nested Avro record)
+    DeviceInfo deviceInfo = DeviceInfo.newBuilder()
+        .setDeviceType("web")
+        .setUserAgent("Mozilla/5.0 (training)")
+        .setIpAddress("192.168.1.100")
+        .setLocation("Training Center")
+        .build();
+
+    // Create user event (using Avro-generated class)
+    UserEvent userEvent = UserEvent.newBuilder()
+        .setUserId(userId)
+        .setAction(action)
+        .setTimestamp(Instant.now().toEpochMilli())
+        .setSessionId("session_" + System.currentTimeMillis())
+        .setProperties(properties != null ? new HashMap<>(properties) : new HashMap<>())
+        .setDeviceInfo(deviceInfo)
+        .setVersion(1)
+        .build();
+
+    ProducerRecord<String, UserEvent> record =
+        new ProducerRecord<>(topicName, userId, userEvent);
+
+    // Send asynchronously with callback
+    producer.send(record, (metadata, exception) -> {
+        if (exception == null) {
+            logger.info("Sent Avro message: topic={}, partition={}, offset={}, key={}",
+                metadata.topic(), metadata.partition(), metadata.offset(), userId);
+        } else {
+            logger.error("Failed to send Avro message for user {}: {}", userId, exception.getMessage());
+        }
+    });
+}
+```
+
+**Run the Example:**
+
+```bash
+# From project root
+mvn exec:java -Dexec.mainClass="com.training.kafka.Day06Schemas.AvroProducer"
+```
+
+## Python Avro Implementation (Data Engineer Track)
+
+For data engineers using Python, here's how to produce and consume Avro messages:
+
+### Python Avro Producer
+
+**Complete Example**: `examples/python/day05_avro_producer.py`
+
+```bash
+# Ensure Schema Registry is running
+curl http://localhost:8081
+
+# Run the Avro producer
+python examples/python/day05_avro_producer.py
+```
+
+**Key code from day05_avro_producer.py:**
+
+```python
+from confluent_kafka import Producer
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroSerializer
+from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
+
+# Avro schema definition
+USER_EVENT_SCHEMA = """
+{
+  "type": "record",
+  "name": "UserEvent",
+  "namespace": "com.training.kafka.avro",
+  "fields": [
+    {"name": "user_id", "type": "string"},
+    {"name": "event_type", "type": "string"},
+    {"name": "timestamp", "type": "long"},
+    {"name": "properties", "type": {"type": "map", "values": "string"}}
+  ]
+}
+"""
+
+# Schema Registry client
+schema_registry_client = SchemaRegistryClient({'url': 'http://localhost:8081'})
+
+# Avro serializer (automatically registers schema)
+avro_serializer = AvroSerializer(
+    schema_registry_client,
+    USER_EVENT_SCHEMA,
+    user_event_to_dict  # Convert object to dict for serialization
+)
+
+# Producer configuration
+producer_config = {
+    'bootstrap.servers': 'localhost:9092',
+    'acks': 'all',
+    'retries': 3,
+    'enable.idempotence': True
+}
+
+producer = Producer(producer_config)
+
+# Send Avro message
+user_event = {
+    'user_id': 'user-123',
+    'event_type': 'LOGIN',
+    'timestamp': int(time.time() * 1000),
+    'properties': {'device': 'mobile', 'os': 'iOS'}
+}
+
+producer.produce(
+    topic='user-events-avro',
+    key=string_serializer('user-123'),
+    value=avro_serializer(user_event, SerializationContext('user-events-avro', MessageField.VALUE)),
+    on_delivery=delivery_callback
+)
+
+producer.flush()
+```
+
+**Install Dependencies:**
+
+```bash
+pip install confluent-kafka[avro]
+# Or install all training dependencies
+pip install -r examples/python/requirements.txt
+```
+
+### Python Avro Consumer
+
+**Complete Example**: `examples/python/day05_avro_consumer.py`
+
+```bash
+# Run the Avro consumer (in a separate terminal)
+python examples/python/day05_avro_consumer.py
+```
+
+**Key code from day05_avro_consumer.py:**
+
+```python
+from confluent_kafka import Consumer
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroDeserializer
+
+# Schema Registry client
+schema_registry_client = SchemaRegistryClient({'url': 'http://localhost:8081'})
+
+# Avro deserializer (automatically fetches schema from registry)
+avro_deserializer = AvroDeserializer(
+    schema_registry_client,
+    schema_str=None,  # Auto-fetch from Schema Registry
+    from_dict=user_event_from_dict
+)
+
+# Consumer configuration
+consumer_config = {
+    'bootstrap.servers': 'localhost:9092',
+    'group.id': 'python-avro-consumer-group',
+    'auto.offset.reset': 'earliest',
+    'enable.auto.commit': False
+}
+
+consumer = Consumer(consumer_config)
+consumer.subscribe(['user-events-avro'])
+
+try:
+    while True:
+        msg = consumer.poll(1.0)
+
+        if msg is None:
+            continue
+
+        if msg.error():
+            continue
+
+        # Deserialize Avro message (schema automatically fetched!)
+        user_event = avro_deserializer(msg.value(), None)
+
+        print(f"✓ Consumed Avro message:")
+        print(f"  User ID: {user_event['user_id']}")
+        print(f"  Event Type: {user_event['event_type']}")
+        print(f"  Properties: {user_event['properties']}")
+
+        consumer.commit()
+
+except KeyboardInterrupt:
+    pass
+finally:
+    consumer.close()
+```
+
+**Install Python Dependencies:**
+
+```bash
+pip install confluent-kafka[avro]
+# Or install all training dependencies
+pip install -r examples/python/requirements.txt
+```
+
+**Python Avro Benefits:**
+- Same Schema Registry as Java applications
+- Automatic schema evolution handling
+- Interoperable with Java, Scala, Go Kafka applications
+- Perfect for data engineering pipelines (Spark, Airflow, Pandas)
+
+## Spring Boot Integration (Java Developer Track - Optional)
+
+> **Warning: Java Developer Track Only**
+> This section covers Spring Boot integration with Avro. Data engineers can use the pure Java approach above with any framework (Spark, Flink, Python, etc.).
+
+### Maven Dependencies (Spring Boot)
 
 ```xml
 <dependencies>
@@ -238,7 +553,7 @@ Avro is a binary serialization format with schema support.
 </build>
 ```
 
-### Configuration
+### Spring Boot Configuration
 
 ```properties
 # Schema Registry URL
@@ -254,9 +569,7 @@ spring.kafka.consumer.value-deserializer=io.confluent.kafka.serializers.KafkaAvr
 spring.kafka.consumer.properties.specific.avro.reader=true
 ```
 
-## Producer with Avro
-
-### Avro Producer Configuration
+### Spring Boot Avro Producer Configuration
 
 ```java
 @Configuration
@@ -289,7 +602,7 @@ public class AvroProducerConfig {
 }
 ```
 
-### Sending Avro Messages
+### Sending Avro Messages (Spring Boot)
 
 ```java
 @Service
@@ -336,7 +649,7 @@ public class AvroProducerService {
 }
 ```
 
-### Using Generated Classes
+### Using Generated Classes (Spring Boot)
 
 ```java
 @Service
@@ -364,9 +677,7 @@ public class TypedAvroProducer {
 }
 ```
 
-## Consumer with Avro
-
-### Avro Consumer Configuration
+### Spring Boot Avro Consumer Configuration
 
 ```java
 @Configuration
@@ -396,7 +707,7 @@ public class AvroConsumerConfig {
 }
 ```
 
-### Consuming Avro Messages
+### Consuming Avro Messages (Spring Boot)
 
 ```java
 @Service
@@ -435,7 +746,94 @@ public class AvroConsumerService {
 }
 ```
 
-## Schema Evolution
+### EventMart with Avro (Spring Boot)
+
+```java
+@Service
+public class EventMartAvroService {
+
+    @Autowired
+    private KafkaTemplate<String, Order> orderTemplate;
+
+    public void publishOrder(OrderRequest request) {
+        // Create Avro Order
+        Order order = Order.newBuilder()
+            .setOrderId(UUID.randomUUID().toString())
+            .setUserId(request.getUserId())
+            .setStatus(OrderStatus.PENDING)
+            .setItems(convertItems(request.getItems()))
+            .setTotal(calculateTotal(request.getItems()))
+            .setCreatedAt(System.currentTimeMillis())
+            .build();
+
+        // Publish to Kafka
+        orderTemplate.send("eventmart-orders-avro", order.getOrderId(), order);
+    }
+
+    @KafkaListener(
+        topics = "eventmart-orders-avro",
+        groupId = "order-processor"
+    )
+    public void processOrder(Order order) {
+        log.info("Processing order: {}", order.getOrderId());
+
+        // Type-safe processing
+        if (order.getStatus() == OrderStatus.PENDING) {
+            validateOrder(order);
+            confirmOrder(order);
+        }
+    }
+}
+```
+
+### Spring Boot REST API Endpoints
+
+#### Run Day 5 Demo
+
+```bash
+curl -X POST http://localhost:8080/api/training/day05/demo
+```
+
+#### List Schemas
+
+```bash
+curl http://localhost:8080/api/training/day05/schemas
+```
+
+#### Register Schema
+
+```bash
+curl -X POST http://localhost:8080/api/training/day05/register-schema \
+  -H "Content-Type: application/json" \
+  -d '{
+    "subject": "users-avro-value",
+    "schema": "{\"type\":\"record\",\"name\":\"User\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"}]}"
+  }'
+```
+
+#### Produce Avro Message
+
+```bash
+curl -X POST http://localhost:8080/api/training/day05/produce-avro \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "user123",
+    "username": "john_doe",
+    "email": "john@example.com"
+  }'
+```
+
+#### Consume Avro Messages
+
+```bash
+curl -X POST http://localhost:8080/api/training/day05/consume-avro \
+  -H "Content-Type: application/json" \
+  -d '{
+    "durationSeconds": 10
+  }'
+```
+
+## Schema Evolution (Platform-Agnostic)
 
 Schema evolution allows you to modify schemas while maintaining compatibility.
 
@@ -546,99 +944,6 @@ Safe changes in both directions:
     - Delete required field
     - Change default value
 
-## Schema Registry REST API
-
-### Register Schema
-
-```bash
-curl -X POST http://localhost:8081/subjects/users-avro-value/versions \
-  -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-  -d '{
-    "schema": "{\"type\":\"record\",\"name\":\"User\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"}]}"
-  }'
-```
-
-### Get Schema by ID
-
-```bash
-curl http://localhost:8081/schemas/ids/1
-```
-
-### List All Subjects
-
-```bash
-curl http://localhost:8081/subjects
-```
-
-### Get Schema Versions
-
-```bash
-curl http://localhost:8081/subjects/users-avro-value/versions
-```
-
-### Get Latest Schema
-
-```bash
-curl http://localhost:8081/subjects/users-avro-value/versions/latest
-```
-
-### Delete Schema
-
-```bash
-# Soft delete (version)
-curl -X DELETE http://localhost:8081/subjects/users-avro-value/versions/1
-
-# Hard delete (subject)
-curl -X DELETE http://localhost:8081/subjects/users-avro-value?permanent=true
-```
-
-## REST API Endpoints
-
-### Run Day 5 Demo
-
-```bash
-curl -X POST http://localhost:8080/api/training/day05/demo
-```
-
-### List Schemas
-
-```bash
-curl http://localhost:8080/api/training/day05/schemas
-```
-
-### Register Schema
-
-```bash
-curl -X POST http://localhost:8080/api/training/day05/register-schema \
-  -H "Content-Type: application/json" \
-  -d '{
-    "subject": "users-avro-value",
-    "schema": "{\"type\":\"record\",\"name\":\"User\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"}]}"
-  }'
-```
-
-### Produce Avro Message
-
-```bash
-curl -X POST http://localhost:8080/api/training/day05/produce-avro \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userId": "user123",
-    "username": "john_doe",
-    "email": "john@example.com"
-  }'
-```
-
-### Consume Avro Messages
-
-```bash
-curl -X POST http://localhost:8080/api/training/day05/consume-avro \
-  -H "Content-Type: application/json" \
-  -d '{
-    "durationSeconds": 10
-  }'
-```
-
 ## Hands-On Exercises
 
 ### Exercise 1: Schema Evolution
@@ -698,45 +1003,28 @@ time curl -X POST http://localhost:8080/api/training/day05/produce-avro-batch
 # Compare throughput and storage
 ```
 
-## EventMart with Avro
+## Learning Track Guidance
 
-```java
-@Service
-public class EventMartAvroService {
+### For Data Engineers (Recommended Path)
+1. Master Schema Registry CLI commands for managing schemas
+2. Use `kafka-avro-console-producer/consumer` for testing
+3. Implement pure Java producers/consumers with Avro serializers
+4. These skills transfer to any language: Python, Scala, Go, Rust
+5. Works with Spark, Flink, Kafka Streams (pure API)
 
-    @Autowired
-    private KafkaTemplate<String, Order> orderTemplate;
+**When to use:** Any Kafka project, any programming language, any data processing framework
 
-    public void publishOrder(OrderRequest request) {
-        // Create Avro Order
-        Order order = Order.newBuilder()
-            .setOrderId(UUID.randomUUID().toString())
-            .setUserId(request.getUserId())
-            .setStatus(OrderStatus.PENDING)
-            .setItems(convertItems(request.getItems()))
-            .setTotal(calculateTotal(request.getItems()))
-            .setCreatedAt(System.currentTimeMillis())
-            .build();
+### For Java Developers (Alternative Path)
+1. Use Spring Boot configuration and annotations
+2. KafkaTemplate and @KafkaListener abstractions
+3. Spring-specific features (actuator, auto-configuration)
+4. Suitable for Java microservices
 
-        // Publish to Kafka
-        orderTemplate.send("eventmart-orders-avro", order.getOrderId(), order);
-    }
+**When to use:** Building Java/Spring Boot microservices specifically
 
-    @KafkaListener(
-        topics = "eventmart-orders-avro",
-        groupId = "order-processor"
-    )
-    public void processOrder(Order order) {
-        log.info("Processing order: {}", order.getOrderId());
-
-        // Type-safe processing
-        if (order.getStatus() == OrderStatus.PENDING) {
-            validateOrder(order);
-            confirmOrder(order);
-        }
-    }
-}
-```
+### Key Difference
+- **Data Engineer approach**: Platform-agnostic, transferable to Python/Scala/Spark/Flink
+- **Java Developer approach**: Spring Boot specific, Java ecosystem only
 
 ## Key Takeaways
 

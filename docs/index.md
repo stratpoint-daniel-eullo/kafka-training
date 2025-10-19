@@ -1,8 +1,38 @@
-# Kafka Training - Container-First Data Engineering
+# Apache Kafka Training for Data Engineers
 
-## Welcome to the Comprehensive Apache Kafka Training Program
+## Welcome to Container-First Kafka Training
 
-This 8-day training program is designed for **data engineers** who want to master Apache Kafka using a **container-first** approach. You'll learn Kafka from fundamentals to production deployment, with hands-on experience using Docker, Kubernetes, and Spring Boot.
+This 8-day training program teaches **platform-agnostic Apache Kafka fundamentals** for data engineers. Learn pure Kafka concepts that transfer to any data platform - Spark, Flink, Python, Scala, or Java.
+
+!!! note "Primary Audience: Data Engineers"
+    This training focuses on **pure Kafka APIs and CLI-based workflows** without framework abstractions. Perfect for data engineers building real-time data pipelines, stream processing applications, and event-driven architectures.
+
+## Learning Tracks
+
+### **Recommended: Data Engineer Track (Pure Kafka)**
+
+Learn Kafka using raw KafkaProducer/KafkaConsumer APIs, CLI tools, and platform-agnostic patterns.
+
+- **Pure Kafka APIs** - No framework abstractions, transferable to any language
+- **CLI-First Workflows** - kafka-console-producer, kafka-console-consumer, kafka-topics
+- **Container-Native** - Docker and Kubernetes from day one
+- **Platform Agnostic** - Works with Spark, Flink, Airflow, Python, Scala
+
+**[Start Here: README-DATA-ENGINEERS.md](../README-DATA-ENGINEERS.md)**
+
+### **Alternative: Java Developer Track (Spring Boot)**
+
+Optional track for Java developers who want Spring Boot integration patterns.
+
+- **Spring Boot Integration** - Spring Kafka abstractions and auto-configuration
+- **Web UI Examples** - REST APIs and browser-based demonstrations
+- **Microservices Patterns** - Event-driven microservices with Spring Cloud
+
+**[Alternative Track: README.md](../README.md)**
+
+---
+
+This documentation covers Kafka concepts applicable to **both tracks**, with emphasis on platform-agnostic fundamentals.
 
 ```mermaid
 graph LR
@@ -28,8 +58,8 @@ Progressive learning from Kafka basics to advanced production patterns with real
 </div>
 
 <div class="metrics-card">
-<h4>90+ Tests</h4>
-Comprehensive test suite using TestContainers for integration testing with real Kafka.
+<h4>Platform-Agnostic</h4>
+Pure Kafka APIs transferable to Python, Scala, Spark, Flink, or any data platform.
 </div>
 
 <div class="metrics-card">
@@ -38,8 +68,8 @@ Learn with Docker and Kubernetes from day one. Production-ready container workfl
 </div>
 
 <div class="metrics-card">
-<h4>40+ REST APIs</h4>
-Spring Boot REST API for every training module with comprehensive JSON endpoints.
+<h4>CLI-Based</h4>
+Master Kafka CLI tools and raw producer/consumer APIs without framework abstractions.
 </div>
 
 <div class="metrics-card">
@@ -56,30 +86,36 @@ Build EventMart - a complete e-commerce event streaming platform throughout the 
 
 ## Quick Start
 
-Get up and running in 5 minutes with Docker Compose:
+Get up and running in 5 minutes:
 
-=== "Docker Compose"
+=== "Data Engineers (Recommended)"
 
     ```bash
     # Clone the repository
     git clone https://github.com/yourusername/kafka-training-java.git
     cd kafka-training-java
 
-    # Start complete environment
+    # Start Kafka with Docker
     docker-compose up -d
 
-    # Test the REST API
-    curl http://localhost:8080/api/training/modules
+    # Run pure Kafka CLI examples
+    ./bin/kafka-training-cli.sh --day 1 --demo foundation
+    ./bin/kafka-training-cli.sh --day 3 --demo producer
+
+    # Or use Kafka's native CLI tools
+    kafka-topics --bootstrap-server localhost:9092 --list
+    kafka-console-producer --broker-list localhost:9092 --topic test
     ```
 
-=== "Spring Boot Dev"
+=== "Java Developers (Alternative)"
 
     ```bash
     # Clone the repository
     git clone https://github.com/yourusername/kafka-training-java.git
     cd kafka-training-java
 
-    # Run with development profile
+    # Start with Spring Boot
+    docker-compose up -d
     mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
     # Test the REST API
@@ -93,10 +129,8 @@ Get up and running in 5 minutes with Docker Compose:
     git clone https://github.com/yourusername/kafka-training-java.git
     cd kafka-training-java
 
-    # Run comprehensive tests
+    # Run comprehensive tests (no manual setup needed)
     mvn test
-
-    # All tests use TestContainers - no manual setup needed!
     ```
 
 ## What You'll Learn
@@ -125,16 +159,16 @@ Get up and running in 5 minutes with Docker Compose:
 
 Access multiple services included in the training environment:
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Training REST API** | http://localhost:8080/api/training/* | Spring Boot API endpoints (use curl/Postman) |
-| **Kafka UI** | http://localhost:8081 | Visual Kafka management (web browser) |
-| **Kafka Broker** | localhost:9092 | Apache Kafka broker |
-| **Schema Registry** | http://localhost:8082 | Confluent Schema Registry |
-| **Kafka Connect** | http://localhost:8083 | Kafka Connect REST API |
-| **PostgreSQL** | localhost:5432 | Demo database for connectors |
-| **Prometheus** | http://localhost:9090 | Metrics collection (optional) |
-| **Grafana** | http://localhost:3000 | Metrics visualization (optional) |
+| Service | URL | Description | Track |
+|---------|-----|-------------|-------|
+| **Kafka Broker** | localhost:9092 | Apache Kafka broker | All |
+| **Schema Registry** | http://localhost:8082 | Confluent Schema Registry | All |
+| **Kafka Connect** | http://localhost:8083 | Kafka Connect REST API | All |
+| **PostgreSQL** | localhost:5432 | Demo database for connectors | All |
+| **Kafka UI** | http://localhost:8081 | Visual Kafka management | All (Optional) |
+| **Prometheus** | http://localhost:9090 | Metrics collection | All (Optional) |
+| **Grafana** | http://localhost:3000 | Metrics visualization | All (Optional) |
+| **Training REST API** | http://localhost:8080/api/training/* | Spring Boot API endpoints | Java Track Only |
 
 ## Architecture Overview
 
@@ -231,26 +265,22 @@ graph LR
 <div class="card-grid">
 
 <div class="info-box">
-<strong>Backend Framework</strong><br/>
-Spring Boot 2.7.18 with Spring Kafka
+<strong>Core Kafka</strong><br/>
+Apache Kafka 3.8.0<br/>
+Pure KafkaProducer/Consumer APIs
 </div>
 
 <div class="info-box">
-<strong>Kafka Distribution</strong><br/>
-Apache Kafka 3.8.0<br/>
-Confluent Platform 7.7.0
+<strong>Kafka Ecosystem</strong><br/>
+Kafka Streams API<br/>
+Kafka Connect<br/>
+Schema Registry
 </div>
 
 <div class="info-box">
 <strong>Containerization</strong><br/>
 Docker & Docker Compose<br/>
-TestContainers for testing
-</div>
-
-<div class="info-box">
-<strong>Orchestration</strong><br/>
-Kubernetes with HPA<br/>
-Helm charts (optional)
+Kubernetes & Helm
 </div>
 
 <div class="info-box">
@@ -262,7 +292,13 @@ Confluent Schema Registry
 <div class="info-box">
 <strong>Monitoring</strong><br/>
 Prometheus & Grafana<br/>
-Spring Boot Actuator
+JMX Metrics
+</div>
+
+<div class="info-box">
+<strong>Optional: Spring Boot</strong><br/>
+Spring Boot 3.3.4<br/>
+Spring Kafka (Java track only)
 </div>
 
 </div>
@@ -272,14 +308,14 @@ Spring Boot Actuator
 By completing this training, you will:
 
 - [x] Master Apache Kafka architecture and core concepts
-- [x] Build production-ready producers and consumers with Spring Boot
+- [x] Build production-ready producers and consumers with pure Kafka APIs
 - [x] Implement real-time stream processing with Kafka Streams
 - [x] Manage schemas with Avro and Schema Registry
 - [x] Configure data integration pipelines with Kafka Connect
 - [x] Deploy Kafka applications to Kubernetes
-- [x] Implement monitoring and observability
-- [x] Test with TestContainers for reliable integration testing
-- [x] Follow container-first development workflows
+- [x] Implement monitoring and observability with Prometheus
+- [x] Master CLI-based Kafka workflows
+- [x] Follow container-first development patterns
 - [x] Build a complete event-driven platform (EventMart)
 
 ## Prerequisites
@@ -321,4 +357,4 @@ Check <a href="deployment/kubernetes-overview/">Kubernetes Deployment</a>
 
 ---
 
-**Built for data engineers, by data engineers.** Start your container-first Kafka journey today!
+**Platform-agnostic Kafka training for modern data engineers.** Start your container-first journey today!

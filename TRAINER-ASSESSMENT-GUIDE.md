@@ -1,8 +1,11 @@
 # EventMart Training Assessment Guide for Trainers
 
+> **⚠️ Java Developer Track Only**
+> This assessment guide is for the EventMart Spring Boot project. For data engineers, assess based on CLI proficiency, pure Kafka API knowledge, and platform-agnostic skills. See [README-DATA-ENGINEERS.md](./README-DATA-ENGINEERS.md) for the data engineer curriculum.
+
 ## 📊 Assessment Overview
 
-This guide provides trainers with clear, objective criteria to evaluate trainee progress throughout the 8-day Kafka training course. Each day builds upon previous knowledge, culminating in a complete EventMart platform demonstration.
+This guide provides trainers with clear, objective criteria to evaluate Java Developer track trainee progress throughout the 8-day Kafka training course, focusing on the EventMart Spring Boot platform.
 
 ---
 

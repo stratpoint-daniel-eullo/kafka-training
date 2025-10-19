@@ -1,5 +1,8 @@
 # Error Handling
 
+> **⚠️ Java Developer Track Only**
+> REST API error handling. Data engineers handle errors in pure Kafka client code.
+
 ## HTTP Status Codes
 
 | Code | Description | Common Causes |

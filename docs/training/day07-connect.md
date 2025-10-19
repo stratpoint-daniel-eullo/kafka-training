@@ -1,5 +1,8 @@
 # Day 7: Kafka Connect
 
+> **Primary Audience:** Data Engineers
+> **Learning Track:** Platform-agnostic Kafka Connect framework using REST API. Spring Boot integration for custom REST endpoints is optional.
+
 ## Learning Objectives
 
 By the end of Day 7, you will:
@@ -567,21 +570,268 @@ curl -X POST http://localhost:8083/connectors \
   }'
 ```
 
-## REST API Endpoints
+## Python Kafka Connect Management (Data Engineer Track)
 
-### Run Day 7 Demo
+For data engineers using Python, here's how to programmatically manage Kafka Connect using the REST API:
+
+### Python Connector Management Script
+
+**Complete Example**: `examples/python/day07_connect_client.py`
+
+```bash
+# Ensure Kafka Connect is running
+curl http://localhost:8083
+
+# Run the Python Kafka Connect client
+python examples/python/day07_connect_client.py
+```
+
+**Key code from day07_connect_client.py:**
+
+```python
+import requests
+import json
+from typing import Dict, List, Optional
+
+class KafkaConnectClient:
+    """
+    Kafka Connect REST API Client
+    Platform-agnostic - same REST API from any language!
+    """
+
+    def __init__(self, connect_url: str = 'http://localhost:8083'):
+        self.connect_url = connect_url
+        self.headers = {'Content-Type': 'application/json'}
+
+    def list_connectors(self) -> Optional[List[str]]:
+        """List all connectors"""
+        return self._request('GET', '/connectors')
+
+    def get_connector(self, name: str) -> Optional[Dict]:
+        """Get connector configuration"""
+        return self._request('GET', f'/connectors/{name}')
+
+    def create_connector(self, config: Dict) -> Optional[Dict]:
+        """Create a new connector"""
+        return self._request('POST', '/connectors', config)
+
+    def get_connector_status(self, name: str) -> Optional[Dict]:
+        """Get connector status"""
+        return self._request('GET', f'/connectors/{name}/status')
+
+    def pause_connector(self, name: str) -> bool:
+        """Pause a connector"""
+        result = self._request('PUT', f'/connectors/{name}/pause')
+        return result is not None
+
+    def resume_connector(self, name: str) -> bool:
+        """Resume a paused connector"""
+        result = self._request('PUT', f'/connectors/{name}/resume')
+        return result is not None
+
+    def delete_connector(self, name: str) -> bool:
+        """Delete a connector"""
+        result = self._request('DELETE', f'/connectors/{name}')
+        return result is not None
+
+# Usage
+client = KafkaConnectClient()
+
+# Get cluster info
+info = client.get_cluster_info()
+print(f"Kafka Connect Version: {info.get('version')}")
+
+# Create connector
+connector_config = {
+    "name": "python-file-source-demo",
+    "config": {
+        "connector.class": "org.apache.kafka.connect.file.FileStreamSourceConnector",
+        "tasks.max": "1",
+        "file": "/tmp/kafka-connect-test-input.txt",
+        "topic": "connect-test-topic"
+    }
+}
+client.create_connector(connector_config)
+
+# List connectors
+connectors = client.list_connectors()
+print(f"Active connectors: {connectors}")
+
+# Get status
+status = client.get_connector_status("python-file-source-demo")
+print(f"Connector state: {status.get('connector', {}).get('state')}")
+
+# Pause/Resume lifecycle
+client.pause_connector("python-file-source-demo")
+client.resume_connector("python-file-source-demo")
+```
+
+**Install Dependencies:**
+
+```bash
+pip install requests
+# Or install all training dependencies
+pip install -r examples/python/requirements.txt
+```
+
+**Key Insight**: Kafka Connect uses the **same REST API** regardless of language! This Python client works identically to Java, Go, or curl clients.
+
+### Creating a JDBC Sink Connector with Python
+
+> **Note**: The following are reference patterns for advanced connector configurations. See the complete working example at `examples/python/day07_connect_client.py` for basic connector management.
+
+```python
+# Create JDBC Sink Connector
+def create_jdbc_sink_connector(client: KafkaConnectClient) -> Dict:
+    """Create a JDBC sink connector to PostgreSQL"""
+
+    sink_config = {
+        "name": "python-postgres-sink",
+        "config": {
+            "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+            "tasks.max": "3",
+            "connection.url": "jdbc:postgresql://postgres:5432/analytics",
+            "connection.user": "analytics_user",
+            "connection.password": "analytics_pass",
+
+            # Topics
+            "topics": "eventmart.orders,eventmart.payments",
+
+            # Table configuration
+            "auto.create": "true",
+            "auto.evolve": "true",
+            "table.name.format": "${topic}_materialized",
+
+            # Insert mode
+            "insert.mode": "upsert",
+            "pk.mode": "record_key",
+            "pk.fields": "id",
+
+            # Batch configuration
+            "batch.size": "3000",
+            "max.retries": "10",
+            "retry.backoff.ms": "3000"
+        }
+    }
+
+    return client.create_connector(sink_config)
+
+
+# Monitor connector health
+def monitor_connector_health(client: KafkaConnectClient, connector_name: str):
+    """Monitor connector and restart if failed"""
+
+    status = client.get_connector_status(connector_name)
+
+    connector_state = status['connector']['state']
+    print(f"Connector state: {connector_state}")
+
+    if connector_state == 'FAILED':
+        print(f"Restarting failed connector: {connector_name}")
+        client.restart_connector(connector_name)
+
+    # Check tasks
+    for task in status['tasks']:
+        task_id = task['id']
+        task_state = task['state']
+        print(f"Task {task_id} state: {task_state}")
+
+        if task_state == 'FAILED':
+            print(f"Restarting failed task: {connector_name}/task/{task_id}")
+            client.restart_task(connector_name, task_id)
+
+
+# Example: Automated connector lifecycle management
+client = KafkaConnectClient()
+
+# Create sink connector
+create_jdbc_sink_connector(client)
+
+# Monitor health
+import time
+while True:
+    for connector in client.list_connectors():
+        monitor_connector_health(client, connector)
+
+    time.sleep(30)  # Check every 30 seconds
+```
+
+### Managing Connectors with Transforms (SMTs)
+
+```python
+def create_connector_with_transforms(client: KafkaConnectClient) -> Dict:
+    """Create connector with Single Message Transforms"""
+
+    config = {
+        "name": "postgres-source-with-transforms",
+        "config": {
+            "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+            "tasks.max": "1",
+            "connection.url": "jdbc:postgresql://postgres:5432/eventmart",
+            "connection.user": "eventmart_user",
+            "connection.password": "eventmart_pass",
+            "mode": "incrementing",
+            "incrementing.column.name": "id",
+            "table.whitelist": "users",
+            "topic.prefix": "raw.",
+
+            # Single Message Transforms (SMTs)
+            "transforms": "RenameField,AddMetadata,MaskSensitive",
+
+            # Rename field transform
+            "transforms.RenameField.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+            "transforms.RenameField.renames": "user_email:email",
+
+            # Add metadata transform
+            "transforms.AddMetadata.type": "org.apache.kafka.connect.transforms.InsertField$Value",
+            "transforms.AddMetadata.timestamp.field": "ingested_at",
+            "transforms.AddMetadata.static.field": "source",
+            "transforms.AddMetadata.static.value": "postgres",
+
+            # Mask sensitive data
+            "transforms.MaskSensitive.type": "org.apache.kafka.connect.transforms.MaskField$Value",
+            "transforms.MaskSensitive.fields": "password,ssn"
+        }
+    }
+
+    return client.create_connector(config)
+```
+
+### Install Python Dependencies
+
+```bash
+pip install requests
+```
+
+**Python Kafka Connect Benefits:**
+- **Programmatic Control**: Automate connector deployment and management
+- **Integration**: Works with Airflow, Prefect, Luigi for workflow orchestration
+- **Monitoring**: Build custom monitoring dashboards
+- **CI/CD**: Deploy connectors as part of data pipeline deployments
+- **Platform-Agnostic**: Same REST API regardless of language
+
+## Spring Boot Integration (Java Developer Track - Optional)
+
+> **Java Developer Track Only**
+> This section shows custom REST API endpoints built with Spring Boot to wrap Kafka Connect REST API calls. Data engineers use Kafka Connect's native REST API directly (shown above).
+
+### Spring Boot REST API Wrapper
+
+The training application provides convenience endpoints that wrap Kafka Connect's REST API:
+
+#### Run Day 7 Demo
 
 ```bash
 curl -X POST http://localhost:8080/api/training/day07/demo
 ```
 
-### List Connectors
+#### List Connectors
 
 ```bash
 curl http://localhost:8080/api/training/day07/connectors
 ```
 
-### Create Source Connector
+#### Create Source Connector
 
 ```bash
 curl -X POST http://localhost:8080/api/training/day07/create-source \
@@ -592,7 +842,7 @@ curl -X POST http://localhost:8080/api/training/day07/create-source \
   }'
 ```
 
-### Create Sink Connector
+#### Create Sink Connector
 
 ```bash
 curl -X POST http://localhost:8080/api/training/day07/create-sink \
@@ -603,13 +853,15 @@ curl -X POST http://localhost:8080/api/training/day07/create-sink \
   }'
 ```
 
-### Delete Connector
+#### Delete Connector
 
 ```bash
 curl -X DELETE http://localhost:8080/api/training/day07/connector/my-source
 ```
 
-## Hands-On Exercises
+## Hands-On Exercises (Platform-Agnostic)
+
+> **Note:** These exercises use Kafka Connect's native REST API and work for both tracks.
 
 ### Exercise 1: Full Pipeline
 
@@ -707,6 +959,33 @@ docker exec kafka-connect curl postgres:5432
 # Check credentials
 docker exec postgres psql -U eventmart_user -d eventmart -c "SELECT 1"
 ```
+
+## Learning Track Guidance
+
+### For Data Engineers (Recommended Path)
+
+1. Master Kafka Connect REST API for connector management
+2. Configure JDBC Source/Sink connectors with JSON
+3. Use Single Message Transforms (SMTs) for data transformation
+4. Deploy in distributed mode for production
+5. Skills transfer to any Kafka deployment (Confluent, Apache, AWS MSK, etc.)
+
+**When to use:** Any data integration project with Kafka - works everywhere
+
+### For Java Developers (Alternative Path)
+
+1. Use Kafka Connect's native REST API (same as data engineers)
+2. Optionally wrap Connect REST API in Spring Boot for custom endpoints
+3. Suitable for adding business logic around connector management
+
+**When to use:** Building Spring Boot applications that need to manage connectors programmatically
+
+### Key Point
+
+- **Kafka Connect is framework-agnostic** - it's a separate JVM process with REST API
+- Data engineers and Java developers use the same Kafka Connect REST API
+- Spring Boot section shows optional custom wrappers, not required for Kafka Connect
+- This is one of the most portable Kafka features - no code required!
 
 ## Key Takeaways
 
