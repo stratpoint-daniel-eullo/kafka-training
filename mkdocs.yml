@@ -103,10 +103,13 @@ nav:
   - Home: index.md
   - Getting Started:
       - getting-started/index.md
+      - Track Selection: getting-started/track-selection.md
       - Overview: getting-started/overview.md
       - Prerequisites: getting-started/prerequisites.md
-      - Quick Start: getting-started/quick-start.md
       - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quick-start.md
+  - Learning Resources:
+      - Rosetta Stone (Python vs Java): learning/rosetta-stone.md
   - Training Curriculum:
       - training/index.md
       - Day 1 - Foundation: training/day01-foundation.md
@@ -128,6 +131,7 @@ nav:
       - Day 7 Exercises: exercises/day07-exercises.md
       - Day 8 Exercises: exercises/day08-exercises.md
       - Capstone Projects:
+          - Choose Your Track: exercises/capstone-landing.md
           - Python Capstone: exercises/capstone-guide-python.md
           - Java Capstone: exercises/capstone-guide-java.md
           - Capstone Extensions: exercises/capstone-extensions.md
@@ -136,6 +140,7 @@ nav:
       - Why Containers for Data Engineers: containers/why-containers.md
       - Docker Basics: containers/docker-basics.md
       - Docker Compose Development: containers/docker-compose.md
+      - Development Workflow: containers/development-workflow.md
       - TestContainers Testing: containers/testcontainers.md
       - Container Best Practices: containers/best-practices.md
   - Production Deployment:

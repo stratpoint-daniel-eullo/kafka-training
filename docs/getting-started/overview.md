@@ -358,10 +358,47 @@ According to recent job market analysis:
 
 ## Next Steps
 
-Ready to begin? Continue to:
+Ready to begin? Choose your track and follow the appropriate path:
 
-1. [Prerequisites](prerequisites.md) - Verify your setup
-2. [Installation](installation.md) - Detailed installation guide
-3. [Quick Start](quick-start.md) - Get running in 5 minutes
+=== "Python Data Engineers"
 
-Or jump directly to [Day 1 Training](../training/day01-foundation.md) if you're all set!
+    **Your Learning Path:**
+
+    1. ✅ [Track Selection](track-selection.md) - Confirm you're on the right track
+    2. ✅ [Prerequisites](prerequisites.md#python-data-engineers) - Python setup
+    3. ✅ [Quick Start](quick-start.md) - CLI-based setup
+    4. ✅ [Day 1: Foundation](../training/day01-foundation.md) - Start learning
+    5. ✅ [Python Capstone](../exercises/capstone-guide-python.md) - Final project
+
+    **Quick Start Command:**
+    ```bash
+    # Start Kafka infrastructure
+    docker-compose -f docker-compose-dev.yml up -d
+
+    # Run Day 1 CLI examples
+    ./bin/kafka-training-cli.sh --day 1 --demo foundation
+    ```
+
+=== "Java Developers"
+
+    **Your Learning Path:**
+
+    1. ✅ [Track Selection](track-selection.md) - Confirm you're on the right track
+    2. ✅ [Prerequisites](prerequisites.md#java-developers) - Java & Maven setup
+    3. ✅ [Quick Start](quick-start.md) - Spring Boot setup
+    4. ✅ [Day 1: Foundation](../training/day01-foundation.md) - Start learning
+    5. ✅ [Java Capstone](../exercises/capstone-guide-java.md) - Final project
+
+    **Quick Start Command:**
+    ```bash
+    # Start Kafka infrastructure
+    docker-compose -f docker-compose-dev.yml up -d
+
+    # Start Spring Boot application
+    mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+    # Open web interface
+    open http://localhost:8080
+    ```
+
+**Not sure which track?** See [Track Selection Guide](track-selection.md)

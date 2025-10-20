@@ -2,11 +2,19 @@
 
 Before starting the Kafka training, ensure you have the required tools and knowledge.
 
-## Required Tools
+!!! note "Track-Specific Prerequisites"
+    This training offers two learning tracks with different prerequisites:
+
+    - **Python Data Engineers**: Focus on Python, CLI tools, and platform-agnostic Kafka
+    - **Java Developers**: Focus on Java, Spring Boot, and microservices integration
+
+    Choose your track in [Track Selection Guide](track-selection.md)
+
+## Required Tools (Both Tracks)
 
 ### Java Development Kit (JDK) 11+
 
-Apache Kafka and Spring Boot require Java 11 or higher.
+Apache Kafka requires Java 11 or higher. Both tracks need Java for running Kafka itself.
 
 === "macOS"
 
@@ -122,9 +130,88 @@ Maven is required for building the Spring Boot application.
     3. Add to PATH
     4. Verify: `mvn -version`
 
+## Track-Specific Prerequisites
+
+### Python Data Engineers Track {#python-data-engineers}
+
+=== "Python 3.8+"
+
+    ```bash
+    # Check Python version
+    python3 --version
+    # Expected: Python 3.8.0 or higher
+
+    # Install pip (if not included)
+    python3 -m ensurepip --upgrade
+    ```
+
+=== "Python Libraries"
+
+    ```bash
+    # Create virtual environment
+    python3 -m venv kafka-env
+    source kafka-env/bin/activate  # Unix/macOS
+    # or: kafka-env\Scripts\activate  # Windows
+
+    # Install confluent-kafka with Avro support
+    pip install confluent-kafka[avro]==2.3.0
+
+    # Install kafka-python (alternative client)
+    pip install kafka-python==2.0.2
+
+    # Install Faust for stream processing
+    pip install faust-streaming==0.10.0
+
+    # Install Avro library
+    pip install avro-python3==1.10.2
+
+    # Install PostgreSQL adapter
+    pip install psycopg2-binary==2.9.9
+
+    # Verify installations
+    python -c "import confluent_kafka; print(confluent_kafka.version())"
+    python -c "import faust; print(faust.__version__)"
+    ```
+
+!!! tip "Python Virtual Environment"
+    Always use a virtual environment to avoid conflicts with system Python packages.
+
+### Java Developers Track {#java-developers}
+
+=== "Maven Configuration"
+
+    Java developers should verify Maven can build Spring Boot applications:
+
+    ```bash
+    # Clone the repository first
+    git clone <repo-url>
+    cd kafka-training-java
+
+    # Build the Spring Boot application
+    mvn clean compile
+
+    # This will download all Spring Boot and Kafka dependencies
+    # First run may take 5-10 minutes
+    ```
+
+=== "IDE Setup"
+
+    For Java developers, an IDE is highly recommended:
+
+    - **IntelliJ IDEA**: Best Spring Boot support
+    - **VS Code**: With Java Extension Pack
+    - **Eclipse**: With Spring Tools 4
+
+    Configure your IDE to:
+
+    1. Use Java 21 (or Java 11+)
+    2. Import as Maven project
+    3. Enable annotation processing
+    4. Set up Spring Boot run configurations
+
 ### Git
 
-Git is required for cloning the repository.
+Git is required for cloning the repository (both tracks).
 
 === "macOS"
 

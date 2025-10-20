@@ -701,7 +701,7 @@ Complete these exercises using Spring Boot integration:
 3. **REST API Testing**: Use the web UI to demonstrate data flow concepts
 4. **EventMart Integration**: Apply concepts to EventMart order processing
 
-**See**: Full exercises in [exercises/day02-exercises.md](../../exercises/day02-exercises.md)
+**See**: Full exercises in [Day 2 Exercises](../exercises/day02-exercises.md)
 
 ## Learning Track Guidance
 
@@ -774,8 +774,8 @@ Ready for Day 3? Continue to [Day 3: Producers](day03-producers.md) for deep div
 
 Or explore:
 
-- **[README-DATA-ENGINEERS.md](../../README-DATA-ENGINEERS.md)** - CLI-first track
-- **[WEB-UI-GETTING-STARTED.md](../../WEB-UI-GETTING-STARTED.md)** - Spring Boot track
+- **[Track Selection Guide](../getting-started/track-selection.md)** - Compare Python vs Java tracks
+- **[Quick Start Guide](../getting-started/quick-start.md)** - Get started quickly
 - [Container Development Guide](../containers/testcontainers.md)
 - [API Reference](../api/training-endpoints.md)
 - **[All Practice Exercises](../exercises/index.md)** - Progressive challenges

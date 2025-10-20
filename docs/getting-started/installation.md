@@ -1,18 +1,21 @@
 # Installation Guide
 
-This guide provides detailed installation instructions for all components of the Kafka Training environment.
+This guide provides detailed installation instructions for the Kafka Training environment using a **container-first approach**.
+
+!!! tip "Container-First Training"
+    This training emphasizes container-based development from day one. You'll use Docker to run Kafka infrastructure while developing locally - the same workflow used in modern data engineering and software development teams.
 
 ## Installation Overview
 
 ```mermaid
 graph LR
-    A[Install<br/>Java & Maven] --> B[Install<br/>Docker]
+    A[Install<br/>Docker] --> B[Install<br/>Java & Maven]
     B --> C[Clone<br/>Repository]
-    C --> D[Configure<br/>Environment]
-    D --> E[Start<br/>Services]
+    C --> D[Start Container<br/>Infrastructure]
+    D --> E[Run App<br/>Locally]
     E --> F[Verify<br/>Setup]
 
-    style A fill:#ff6600,stroke:#333,stroke-width:2px,color:#fff
+    style A fill:#ff6600,stroke:#333,stroke-width:3px,color:#fff
     style B fill:#ff8533,stroke:#333,stroke-width:2px,color:#fff
     style C fill:#ffaa66,stroke:#333,stroke-width:2px,color:#fff
     style D fill:#ffcc99,stroke:#333,stroke-width:2px,color:#fff
@@ -20,85 +23,16 @@ graph LR
     style F fill:#00cc66,stroke:#333,stroke-width:2px,color:#fff
 ```
 
-## Step 1: Install Java Development Kit
+!!! success "Why Container-First?"
+    - **Production Parity**: Your dev environment matches production exactly
+    - **Fast Onboarding**: New team members productive in minutes
+    - **No Conflicts**: Isolated Kafka environment, no version conflicts
+    - **Easy Cleanup**: Remove everything with one command
+    - **Industry Standard**: Modern data teams use containers everywhere
 
-### macOS
+## Step 1: Install Docker (Required)
 
-```bash
-# Install using Homebrew
-brew install openjdk@11
-
-# Add to PATH (add to ~/.zshrc or ~/.bash_profile)
-echo 'export PATH="/usr/local/opt/openjdk@11/bin:$PATH"' >> ~/.zshrc
-echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 11)' >> ~/.zshrc
-
-# Reload shell configuration
-source ~/.zshrc
-
-# Verify installation
-java -version
-```
-
-### Ubuntu/Debian
-
-```bash
-# Update package index
-sudo apt update
-
-# Install OpenJDK 11
-sudo apt install openjdk-11-jdk -y
-
-# Set JAVA_HOME (add to ~/.bashrc)
-echo 'export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64' >> ~/.bashrc
-echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.bashrc
-
-# Reload shell configuration
-source ~/.bashrc
-
-# Verify installation
-java -version
-```
-
-### Windows
-
-1. Download OpenJDK from [Adoptium](https://adoptium.net/)
-2. Run the installer
-3. Set environment variables:
-    - Add `JAVA_HOME` pointing to JDK installation
-    - Add `%JAVA_HOME%\bin` to PATH
-4. Verify: `java -version`
-
-## Step 2: Install Maven
-
-### macOS
-
-```bash
-# Install using Homebrew
-brew install maven
-
-# Verify installation
-mvn -version
-```
-
-### Ubuntu/Debian
-
-```bash
-# Install Maven
-sudo apt update
-sudo apt install maven -y
-
-# Verify installation
-mvn -version
-```
-
-### Windows
-
-1. Download from [Maven Downloads](https://maven.apache.org/download.cgi)
-2. Extract to `C:\Program Files\Apache\maven`
-3. Add to PATH: `C:\Program Files\Apache\maven\bin`
-4. Verify: `mvn -version`
-
-## Step 3: Install Docker
+Docker is the **foundation** of this training. Install it first to run Kafka infrastructure in containers.
 
 ### macOS
 
@@ -153,6 +87,84 @@ docker compose version
     - Memory: 4-8 GB
     - CPUs: 2-4 cores
 5. Verify: `docker --version`
+
+## Step 2: Install Java Development Kit
+
+### macOS
+
+```bash
+# Install using Homebrew
+brew install openjdk@21
+
+# Add to PATH (add to ~/.zshrc or ~/.bash_profile)
+echo 'export PATH="/usr/local/opt/openjdk@21/bin:$PATH"' >> ~/.zshrc
+echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 21)' >> ~/.zshrc
+
+# Reload shell configuration
+source ~/.zshrc
+
+# Verify installation
+java -version
+```
+
+### Ubuntu/Debian
+
+```bash
+# Update package index
+sudo apt update
+
+# Install OpenJDK 21
+sudo apt install openjdk-21-jdk -y
+
+# Set JAVA_HOME (add to ~/.bashrc)
+echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' >> ~/.bashrc
+echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.bashrc
+
+# Reload shell configuration
+source ~/.bashrc
+
+# Verify installation
+java -version
+```
+
+### Windows
+
+1. Download OpenJDK 21 from [Adoptium](https://adoptium.net/)
+2. Run the installer
+3. Set environment variables:
+    - Add `JAVA_HOME` pointing to JDK installation
+    - Add `%JAVA_HOME%\bin` to PATH
+4. Verify: `java -version`
+
+## Step 3: Install Maven
+
+### macOS
+
+```bash
+# Install using Homebrew
+brew install maven
+
+# Verify installation
+mvn -version
+```
+
+### Ubuntu/Debian
+
+```bash
+# Install Maven
+sudo apt update
+sudo apt install maven -y
+
+# Verify installation
+mvn -version
+```
+
+### Windows
+
+1. Download from [Maven Downloads](https://maven.apache.org/download.cgi)
+2. Extract to `C:\Program Files\Apache\maven`
+3. Add to PATH: `C:\Program Files\Apache\maven\bin`
+4. Verify: `mvn -version`
 
 ## Step 4: Install Git
 
@@ -286,20 +298,34 @@ Key environment variables:
 
 ## Step 8: Start Services
 
-### Full Stack Deployment
+!!! success "Recommended: Development Mode (Container-First)"
+    Start Kafka infrastructure in containers, run your application locally. This is the **recommended approach** for this training.
+
+### Development Mode (Recommended)
 
 ```bash
 # Pull Docker images (first time only)
-docker-compose pull
+docker-compose -f docker-compose-dev.yml pull
 
-# Start all services
-docker-compose up -d
+# Start Kafka infrastructure in containers
+docker-compose -f docker-compose-dev.yml up -d
 
 # Check status
-docker-compose ps
+docker-compose -f docker-compose-dev.yml ps
+
+# Run Spring Boot locally for hot reload
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Expected services:
+**Why this approach?**
+
+- ✅ Instant code changes with hot reload
+- ✅ Full IDE debugging support
+- ✅ Kafka runs in containers (production parity)
+- ✅ Fast startup (only Kafka infrastructure, not the whole app)
+- ✅ Real-world development workflow
+
+Expected infrastructure services:
 
 ```
 kafka-training-zookeeper       running
@@ -308,18 +334,24 @@ kafka-training-schema-registry running
 kafka-training-postgres        running
 kafka-training-connect         running
 kafka-training-ui              running
-kafka-training-application     running
 ```
 
-### Development Mode
+### Full Stack Mode (Alternative)
+
+For running everything in containers (useful for integration testing):
 
 ```bash
-# Start only infrastructure
-docker-compose -f docker-compose-dev.yml up -d
+# Pull Docker images (first time only)
+docker-compose pull
 
-# Run Spring Boot locally
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+# Start all services (including Spring Boot app)
+docker-compose up -d
+
+# Check status
+docker-compose ps
 ```
+
+**Note:** This mode runs the Spring Boot app in a container, so code changes require rebuilding the Docker image.
 
 ### With Monitoring
 
@@ -562,8 +594,8 @@ curl -X POST "http://localhost:8080/api/training/eventmart/simulate/user?userId=
 
 If issues persist:
 
-1. Check logs: `docker-compose logs -f`
-2. Review [Troubleshooting Guide](../contributing/troubleshooting.md)
+1. Check logs: `docker-compose -f docker-compose-dev.yml logs -f`
+2. Review [Development Setup](../contributing/development-setup.md)
 3. Search GitHub issues
 4. Ask in community forums
 
@@ -576,5 +608,17 @@ Installation complete! Now:
 3. [Container Guide](../containers/docker-basics.md) - Learn Docker basics
 4. [Run Tests](../contributing/testing.md) - Understand testing approach
 
-!!! success "Installation Complete!"
-    Your Kafka training environment is ready! Head to [Quick Start](quick-start.md) to verify everything works, then begin [Day 1: Foundation](../training/day01-foundation.md).
+!!! success "Installation Complete - Container-First Development Ready!"
+    Your Kafka training environment is ready with a **container-first approach**:
+
+    ✅ **Docker** - Running Kafka infrastructure in containers
+    ✅ **Java & Maven** - For local application development
+    ✅ **Development Mode** - Best of both worlds (containers + local dev)
+
+    **Next Steps:**
+
+    1. [Quick Start](quick-start.md) - Verify everything works
+    2. [Day 1: Foundation](../training/day01-foundation.md) - Start learning Kafka
+    3. [Development Workflow](../containers/development-workflow.md) - Learn container-first patterns
+
+    **Remember:** Use `docker-compose -f docker-compose-dev.yml up -d` for all training exercises!

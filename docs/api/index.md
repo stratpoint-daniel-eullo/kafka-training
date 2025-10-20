@@ -422,9 +422,9 @@ Error codes and responses
 For API issues:
 
 1. Check [Error Handling Guide](errors.md)
-2. Review [Troubleshooting](../contributing/troubleshooting.md)
-3. Verify Kafka is running: `docker-compose ps`
-4. Check application logs: `docker-compose logs kafka-training-app`
+2. Review [Development Setup](../contributing/development-setup.md)
+3. Verify Kafka is running: `docker-compose -f docker-compose-dev.yml ps`
+4. Check application logs: `docker-compose -f docker-compose-dev.yml logs kafka-training-app`
 
 ---
 

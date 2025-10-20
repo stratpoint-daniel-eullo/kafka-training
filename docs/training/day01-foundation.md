@@ -706,7 +706,7 @@ This training supports two distinct approaches:
 
 **Both tracks cover the same Kafka concepts** - choose based on your role and goals.
 
-See [LEARNING-PATHS.md](../../LEARNING-PATHS.md) for detailed comparison.
+See [Track Selection Guide](../getting-started/track-selection.md) for detailed comparison.
 
 ## Next Steps
 
@@ -714,8 +714,8 @@ Ready for Day 2? Continue to [Day 2: Data Flow and Message Patterns](day02-dataf
 
 Or explore:
 
-- **[README-DATA-ENGINEERS.md](../../README-DATA-ENGINEERS.md)** - CLI-first track
-- **[WEB-UI-GETTING-STARTED.md](../../WEB-UI-GETTING-STARTED.md)** - Spring Boot track
+- **[Track Selection Guide](../getting-started/track-selection.md)** - Compare Python vs Java tracks
+- **[Quick Start Guide](../getting-started/quick-start.md)** - Get started quickly
 - [Container Development Guide](../containers/docker-basics.md)
 - [Architecture Overview](../architecture/system-design.md)
 - **[All Practice Exercises](../exercises/index.md)** - Hands-on challenges

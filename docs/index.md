@@ -18,7 +18,7 @@ Learn Kafka using raw KafkaProducer/KafkaConsumer APIs, CLI tools, and platform-
 - **Container-Native** - Docker and Kubernetes from day one
 - **Platform Agnostic** - Works with Spark, Flink, Airflow, Python, Scala
 
-**[Start Here: README-DATA-ENGINEERS.md](../README-DATA-ENGINEERS.md)**
+**[Start Here: Quick Start Guide](getting-started/quick-start.md)**
 
 ### **Alternative: Java Developer Track (Spring Boot)**
 
@@ -28,7 +28,7 @@ Optional track for Java developers who want Spring Boot integration patterns.
 - **Web UI Examples** - REST APIs and browser-based demonstrations
 - **Microservices Patterns** - Event-driven microservices with Spring Cloud
 
-**[Alternative Track: README.md](../README.md)**
+**[Alternative Track: Quick Start Guide](getting-started/quick-start.md)**
 
 ---
 
@@ -96,7 +96,7 @@ Get up and running in 5 minutes:
     cd kafka-training-java
 
     # Start Kafka with Docker
-    docker-compose up -d
+    docker-compose -f docker-compose-dev.yml up -d
 
     # Run pure Kafka CLI examples
     ./bin/kafka-training-cli.sh --day 1 --demo foundation
@@ -115,7 +115,7 @@ Get up and running in 5 minutes:
     cd kafka-training-java
 
     # Start with Spring Boot
-    docker-compose up -d
+    docker-compose -f docker-compose-dev.yml up -d
     mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
     # Test the REST API
@@ -161,6 +161,8 @@ Access multiple services included in the training environment:
 
 | Service | URL | Description | Track |
 |---------|-----|-------------|-------|
+| **Training REST API** | http://localhost:8080 | Spring Boot application homepage | Java Track Only |
+| **Training API Endpoints** | http://localhost:8080/api/training/* | REST API for training modules | Java Track Only |
 | **Kafka Broker** | localhost:9092 | Apache Kafka broker | All |
 | **Schema Registry** | http://localhost:8082 | Confluent Schema Registry | All |
 | **Kafka Connect** | http://localhost:8083 | Kafka Connect REST API | All |
@@ -168,7 +170,6 @@ Access multiple services included in the training environment:
 | **Kafka UI** | http://localhost:8081 | Visual Kafka management | All (Optional) |
 | **Prometheus** | http://localhost:9090 | Metrics collection | All (Optional) |
 | **Grafana** | http://localhost:3000 | Metrics visualization | All (Optional) |
-| **Training REST API** | http://localhost:8080/api/training/* | Spring Boot API endpoints | Java Track Only |
 
 ## Architecture Overview
 
@@ -321,7 +322,7 @@ By completing this training, you will:
 ## Prerequisites
 
 !!! note "What You Need"
-    - **Java 11+** - JDK installed and configured
+    - **Java 21** - JDK installed and configured
     - **Docker** - Docker Desktop or Docker Engine
     - **Maven 3.8+** - For building the project
     - **Git** - For cloning the repository

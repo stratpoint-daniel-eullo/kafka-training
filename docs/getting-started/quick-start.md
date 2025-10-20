@@ -15,7 +15,21 @@ cd kafka-training-java
 
 Choose your preferred method:
 
-=== "Full Stack (Recommended)"
+=== "Development Mode (Recommended)"
+
+    Start only infrastructure, run app locally for hot reload:
+
+    ```bash
+    # Start only Kafka infrastructure
+    docker-compose -f docker-compose-dev.yml up -d
+
+    # Run Spring Boot app locally
+    mvn spring-boot:run -Dspring-boot.run.profiles=dev
+    ```
+
+    **Best For:** Active development with code changes, training exercises
+
+=== "Full Stack"
 
     Start the complete Kafka ecosystem with all services:
 
@@ -37,20 +51,6 @@ Choose your preferred method:
     - Kafka UI (port 8081)
     - Training App (port 8080)
 
-=== "Development Mode"
-
-    Start only infrastructure, run app locally for hot reload:
-
-    ```bash
-    # Start only Kafka infrastructure
-    docker-compose -f docker-compose-dev.yml up -d
-
-    # Run Spring Boot app locally
-    mvn spring-boot:run -Dspring-boot.run.profiles=dev
-    ```
-
-    **Best For:** Active development with code changes
-
 === "TestContainers"
 
     Run tests with automatic container management:
@@ -69,7 +69,7 @@ Choose your preferred method:
 
 ```bash
 # Check all containers are running
-docker-compose ps
+docker-compose -f docker-compose-dev.yml ps
 
 # Expected output:
 # kafka-training-kafka         running
@@ -229,30 +229,30 @@ curl http://localhost:8080/api/training/eventmart/status | jq
 
 ```bash
 # View all logs
-docker-compose logs -f
+docker-compose -f docker-compose-dev.yml logs -f
 
 # View specific service logs
-docker-compose logs -f kafka-training-app
-docker-compose logs -f kafka
+docker-compose -f docker-compose-dev.yml logs -f kafka-training-app
+docker-compose -f docker-compose-dev.yml logs -f kafka
 
 # View last 100 lines
-docker-compose logs --tail=100 kafka-training-app
+docker-compose -f docker-compose-dev.yml logs --tail=100 kafka-training-app
 ```
 
 ### Restart Services
 
 ```bash
 # Restart all services
-docker-compose restart
+docker-compose -f docker-compose-dev.yml restart
 
 # Restart specific service
-docker-compose restart kafka-training-app
+docker-compose -f docker-compose-dev.yml restart kafka-training-app
 
 # Stop all services
-docker-compose down
+docker-compose -f docker-compose-dev.yml down
 
 # Stop and remove volumes (⚠️ deletes data)
-docker-compose down -v
+docker-compose -f docker-compose-dev.yml down -v
 ```
 
 ### Access Container Shell
