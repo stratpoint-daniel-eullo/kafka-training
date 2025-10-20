@@ -10,6 +10,151 @@
   --error-red: #cc0000;
 }
 
+/* Full Viewport Layout */
+html {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Remove default max-width constraints to use full viewport */
+.md-container {
+  max-width: none;
+  width: 100%;
+}
+
+/* Optimize grid layout for full viewport */
+.md-grid {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Header: Full width */
+.md-header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 4;
+}
+
+/* Main content area: Use flexbox for proper layout */
+.md-main {
+  display: flex;
+  flex: 1;
+  width: 100%;
+}
+
+.md-main__inner {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  margin: 0;
+  max-width: none;
+}
+
+/* Left sidebar (navigation): Fixed width with full height */
+.md-sidebar--primary {
+  position: sticky;
+  top: 4rem;
+  width: 14rem;
+  height: calc(100vh - 4rem);
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Right sidebar (table of contents): Fixed width with full height */
+.md-sidebar--secondary {
+  position: sticky;
+  top: 4rem;
+  width: 14rem;
+  height: calc(100vh - 4rem);
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-left: auto;
+}
+
+/* Main content: Flexible width, use remaining space */
+.md-content {
+  flex: 1;
+  max-width: none;
+  min-width: 0;
+  padding: 0 1.5rem;
+}
+
+/* Content container: Optimal reading width with padding */
+.md-content__inner {
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: 1.5rem 0;
+}
+
+/* Ensure footer doesn't interfere */
+.md-footer {
+  width: 100%;
+}
+
+/* Navigation tabs: Full width */
+.md-tabs {
+  width: 100%;
+}
+
+/* Optimize for tablets */
+@media screen and (min-width: 60em) and (max-width: 76.25em) {
+  .md-sidebar--primary {
+    width: 12rem;
+  }
+
+  .md-sidebar--secondary {
+    width: 12rem;
+  }
+
+  .md-content {
+    padding: 0 1rem;
+  }
+}
+
+/* Optimize for large screens */
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary {
+    width: 16rem;
+  }
+
+  .md-sidebar--secondary {
+    width: 16rem;
+  }
+
+  .md-content {
+    padding: 0 2rem;
+  }
+
+  .md-content__inner {
+    max-width: 100rem;
+  }
+}
+
+/* Handle very wide screens */
+@media screen and (min-width: 100em) {
+  .md-sidebar--primary {
+    width: 18rem;
+  }
+
+  .md-sidebar--secondary {
+    width: 18rem;
+  }
+
+  .md-content {
+    padding: 0 3rem;
+  }
+}
+
 /* Enhanced code blocks */
 .highlight {
   border-radius: 4px;

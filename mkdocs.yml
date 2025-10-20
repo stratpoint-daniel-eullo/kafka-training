@@ -2,28 +2,31 @@
 site_name: Kafka Training for Data Engineers
 site_description: Comprehensive 8-day Apache Kafka training with platform-agnostic fundamentals, pure APIs, CLI tools, Docker, and Kubernetes for data engineers
 site_author: Kafka Training Team
-site_url: https://yourusername.github.io/kafka-training-java
+site_url: https://kafka-training.stratpoint.io
 
 repo_name: kafka-training-java
 repo_url: https://github.com/yourusername/kafka-training-java
 edit_uri: edit/master/docs/
 
+# Use directory URLs and ensure assets work with subdirectory
+use_directory_urls: true
+
 theme:
   name: material
   language: en
   palette:
-    - scheme: default
-      primary: deep orange
-      accent: orange
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
     - scheme: slate
       primary: deep orange
       accent: orange
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+    - scheme: default
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
   font:
     text: Work Sans
     code: JetBrains Mono
@@ -120,7 +123,7 @@ nav:
       - Day 6 - Streams Processing: training/day06-streams.md
       - Day 7 - Kafka Connect: training/day07-connect.md
       - Day 8 - Advanced Topics: training/day08-advanced.md
-  - Practice Exercises:
+  - Practice Exercises & Capstone Projects:
       - exercises/index.md
       - Day 1 Exercises: exercises/day01-exercises.md
       - Day 2 Exercises: exercises/day02-exercises.md

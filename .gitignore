@@ -44,17 +44,20 @@ zookeeper/
 application-local.properties
 
 
-# Docs
-PROGRESSIVE-PROJECT-SUMMARY.md
-TRAINING-SUMMARY.md
-CLEANUP-SUMMARY.md
-AVRO-WARNINGS-EXPLAINED.md
+# Docs - ignore all .md files in root folder except README files
+/*.md
+!README*.md
 
 # MkDocs
 site/
 .cache/
 *.pyc
 __pycache__/
+
+# Cloudflare Wrangler
+.wrangler/
+wrangler.toml.bak
+node_modules/
 
 # Environment
 .env
