@@ -48,12 +48,12 @@ def create_topics(admin_client):
     # Define topics to create
     topics = [
         NewTopic(
-            name='python-demo-topic-1',
+            name='test-topic-1',
             num_partitions=3,
             replication_factor=1
         ),
         NewTopic(
-            name='python-demo-topic-2',
+            name='test-topic-2',
             num_partitions=6,
             replication_factor=1,
             topic_configs={
